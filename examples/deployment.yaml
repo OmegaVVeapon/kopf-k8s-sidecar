@@ -1,0 +1,46 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sample-deployment
+  labels:
+    app: sample
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sample
+  template:
+    metadata:
+      labels:
+        app: sample
+    spec:
+      serviceAccountName: sample-acc
+      containers:
+        - name: bash
+          image: bash:4.4.19
+          volumeMounts:
+            - name: shared-volume
+              mountPath: /tmp/
+          command: ["watch"]
+          args: ["for file in /tmp/*; do tail -v -n +1 $file; echo; done"]
+        - name: sidecar
+          # image: kiwigrid/k8s-sidecar:latest
+          image: omegavveapon/kopf-k8s-sidecar:latest
+          volumeMounts:
+            - name: shared-volume
+              mountPath: /tmp/
+          env:
+            # - name: UNIQUE_FILENAMES
+            #   value: "true"
+            - name: LABEL
+              value: "findme"
+            - name: FOLDER
+              value: /tmp/
+            - name: RESOURCE
+              value: both
+            - name: NAMESPACE
+              value: ALL
+      volumes:
+        - name: shared-volume
+          emptyDir: {}
