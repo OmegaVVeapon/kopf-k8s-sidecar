@@ -31,16 +31,20 @@ spec:
             - name: shared-volume
               mountPath: /tmp/
           env:
-            # - name: UNIQUE_FILENAMES
+            - name: UNIQUE_FILENAMES
+              value: "true"
+            # - name: DEBUG
             #   value: "true"
+            # - name: VERBOSE
+            #   value: "true"
+            # - name: NAMESPACE
+            #   value: default
             - name: LABEL
               value: "findme"
             - name: FOLDER
               value: /tmp/
             - name: RESOURCE
               value: both
-            - name: NAMESPACE
-              value: ALL
       volumes:
         - name: shared-volume
           emptyDir: {}
