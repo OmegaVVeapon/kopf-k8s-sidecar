@@ -31,5 +31,6 @@ USER appuser
 # Install application into container
 COPY app/ .
 
-# Run the application
-CMD ["kopf", "run", "sidecar.py", "--standalone"]
+COPY ./docker-entrypoint.sh .
+ENTRYPOINT ["./docker-entrypoint.sh"]
+CMD ["kopf-k8s-sidecar"]
