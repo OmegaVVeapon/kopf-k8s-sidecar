@@ -20,15 +20,16 @@ def startup_tasks(settings: kopf.OperatorSettings, logger, **_):
 @kopf.on.resume('', 'v1', 'configmaps', labels={LABEL: kopf.PRESENT})
 @kopf.on.create('', 'v1', 'configmaps', labels={LABEL: kopf.PRESENT})
 @kopf.on.update('', 'v1', 'configmaps', labels={LABEL: kopf.PRESENT})
+def write_configmap(body, event, logger, **_):
+    write_file(event, FOLDER, body, logger)
+
 @kopf.on.resume('', 'v1', 'secrets', labels={LABEL: kopf.PRESENT})
 @kopf.on.create('', 'v1', 'secrets', labels={LABEL: kopf.PRESENT})
 @kopf.on.update('', 'v1', 'secrets', labels={LABEL: kopf.PRESENT})
-def create_fn(body, event, logger, **_):
-    #  print_stuff(event, body, logger)
+def write_secret(body, event, logger, **_):
     write_file(event, FOLDER, body, logger)
 
 @kopf.on.delete('', 'v1', 'configmaps', labels={LABEL: kopf.PRESENT})
 @kopf.on.delete('', 'v1', 'secrets', labels={LABEL: kopf.PRESENT})
 def delete_fn(body, logger, **_):
-    #  print_stuff("DELETE", body, logger)
     delete_file(body, FOLDER, logger)
