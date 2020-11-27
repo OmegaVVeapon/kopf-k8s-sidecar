@@ -8,6 +8,8 @@ LABEL = require_envvar('LABEL')
 
 @kopf.on.startup()
 def startup_tasks(settings: kopf.OperatorSettings, logger, **_):
+    settings.persistence.finalizer = 'kopf.zalando.org/K8sSidecarFinalizerMarker'
+
     # Turn off k8s event logging unless EVENT_LOGGING exists
     if not "EVENT_LOGGING" in os.environ:
         settings.posting.enabled = False
