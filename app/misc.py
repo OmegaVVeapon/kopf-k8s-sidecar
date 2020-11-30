@@ -1,12 +1,12 @@
 import os
 import sys
 
-def get_required_env_var(name, logger):
+def get_required_env_var(name):
     """Returns value of a required environment variable. Fails if not found"""
     try:
         return os.environ[name]
     except KeyError:
-        logger.error(f"{name} environment variable is required! Exiting.")
+        print(f"{name} environment variable is required! Exiting.")
         sys.exit(1)
 
 def get_env_var_bool(name):

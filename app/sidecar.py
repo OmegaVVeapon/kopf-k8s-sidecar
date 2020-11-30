@@ -4,7 +4,7 @@ import kopf
 from misc import get_required_env_var, get_env_var_bool, get_env_var_int
 from io_helpers import create_folder, write_file, delete_file
 
-LABEL = None
+LABEL = get_required_env_var('LABEL')
 
 @kopf.on.startup()
 def startup_tasks(settings: kopf.OperatorSettings, logger, **_):
@@ -12,8 +12,7 @@ def startup_tasks(settings: kopf.OperatorSettings, logger, **_):
     as the other handlers won't be initialized until these tasks are complete"""
 
     # Check that the required environment variables are present before we start
-    folder = get_required_env_var('FOLDER', logger)
-    LABEL = get_required_env_var('LABEL', logger)
+    folder = get_required_env_var('FOLDER')
 
     # Replace the default marker with something less cryptic
     settings.persistence.finalizer = 'kopf.zalando.org/K8sSidecarFinalizerMarker'
