@@ -3,7 +3,24 @@ import errno
 import hashlib
 from misc import get_env_var_bool
 
-def get_filepath(filename, body):
+def create_folder(folder, logger):
+    """
+    If the parent folder doesn't exist, create it. If there are insufficient
+    permissions to create the directory, log an error and return.
+    """
+    if not os.path.exists(folder):
+        logger.info(f"Creating folder {folder}")
+        try:
+            os.makedirs(folder)
+        except OSError as e:
+            if e.errno not in (errno.EACCES, errno.EEXIST):
+                raise
+            if e.errno == errno.EACCES:
+                logger.error(f"Insufficient privileges to create folder {folder}.")
+                return
+    logger.info(f"Folder {folder} already exists. Skipping creation.")
+
+async def get_filepath(filename, body):
     """
     Returns unique path if UNIQUE_FILENAMES are desired.
     Otherwise, simply returns the concatenated filename with the folder.
@@ -23,28 +40,11 @@ def get_filepath(filename, body):
     return os.path.join(folder, filename)
 
 
-def create_folder(folder, logger):
-    """
-    If the parent folder doesn't exist, create it. If there are insufficient
-    permissions to create the directory, log an error and return.
-    """
-    if not os.path.exists(folder):
-        logger.info(f"Creating folder {folder}")
-        try:
-            os.makedirs(folder)
-        except OSError as e:
-            if e.errno not in (errno.EACCES, errno.EEXIST):
-                raise
-            if e.errno == errno.EACCES:
-                logger.error(f"Insufficient privileges to create folder {folder}.")
-                return
-    logger.info(f"Folder {folder} already exists. Skipping creation.")
-
-def delete_file(body, logger):
+async def delete_file(body, logger):
     resource_kind = body['kind']
 
     for filename in body['data'].keys():
-        filepath = get_filepath(filename, body)
+        filepath = await get_filepath(filename, body)
         logger.info(f"[DELETE:{resource_kind}] Deleting file {filepath}.")
         try:
             os.remove(filepath)
@@ -53,7 +53,7 @@ def delete_file(body, logger):
         except OSError as e:
             logger.error(e)
 
-def write_file(event, body, logger):
+async def write_file(event, body, logger):
     """
     Write contents to the desired filepath if they have changed.
     """
@@ -61,7 +61,7 @@ def write_file(event, body, logger):
     event = event.upper()
 
     for filename, content in body['data'].items():
-        filepath = get_filepath(filename, body)
+        filepath = await get_filepath(filename, body)
 
         if os.path.exists(filepath):
             # Compare file contents with new ones so we don't update the file if nothing changed
