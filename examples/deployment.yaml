@@ -45,6 +45,8 @@ spec:
             #   value: default
             - name: LABEL
               value: "findme"
+            - name: LABEL_VALUE
+              value: "yea"
             - name: FOLDER
               value: /tmp/
             - name: RESOURCE
