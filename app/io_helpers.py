@@ -1,7 +1,7 @@
 import os
 import errno
 import hashlib
-from misc import get_env_var_bool
+from misc import get_env_var_bool, get_base64_decoded
 
 def create_folder(folder, logger):
     """
@@ -62,6 +62,9 @@ async def write_file(event, body, logger):
 
     for filename, content in body['data'].items():
         filepath = await get_filepath(filename, body)
+
+        if resource_kind == 'Secret':
+            content = get_base64_decoded(content)
 
         if os.path.exists(filepath):
             # Compare file contents with new ones so we don't update the file if nothing changed
