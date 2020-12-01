@@ -27,6 +27,10 @@ spec:
         - name: sidecar
           # image: kiwigrid/k8s-sidecar:latest
           image: omegavveapon/kopf-k8s-sidecar:latest
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8080
           volumeMounts:
             - name: shared-volume
               mountPath: /tmp/
