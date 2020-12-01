@@ -20,8 +20,14 @@ def startup_tasks(settings: kopf.OperatorSettings, logger, **_):
     # Set the client and service k8s API timeouts
     # Very important! Without proper values, the operator may stop responding!
     # See https://github.com/nolar/kopf/issues/585
-    client_timeout = get_env_var_int('WATCH_CLIENT_TIMEOUT', 60, logger)
-    server_timeout = get_env_var_int('WATCH_SERVER_TIMEOUT', 60, logger)
+    client_timeout = get_env_var_int('WATCH_CLIENT_TIMEOUT', 660, logger)
+    server_timeout = get_env_var_int('WATCH_SERVER_TIMEOUT', 600, logger)
+
+    logger.info(f"Client watching requests using a timeout of {client_timeout} seconds")
+    settings.watching.client_timeout = client_timeout
+
+    logger.info(f"Server watching requests using a timeout of {server_timeout} seconds")
+    settings.watching.server_timeout = server_timeout
 
     # The client timeout shouldn't be shorter than the server timeout
     # https://kopf.readthedocs.io/en/latest/configuration/#api-timeouts
