@@ -6,6 +6,25 @@ from io_helpers import create_folder, write_file, delete_file
 
 LABEL = get_required_env_var('LABEL')
 
+def label_is_satisfied(meta, **_):
+    """Runs the logic for LABEL and LABEL_VALUE and tells us if we need to watch the resource"""
+    label_value = os.getenv('LABEL_VALUE')
+
+    # if there are no labels in the resource, there's no point in checking further
+    if 'labels' not in meta:
+        return False
+
+    # If LABEL_VALUE wasn't set but we find the LABEL, that's good enough
+    if label_value is None and LABEL in meta['labels'].keys():
+        return True
+
+    # If LABEL_VALUE was set, it needs to be the value of LABEL for one of the key-vars in the dict
+    for key, value in meta['labels'].items():
+        if key == LABEL and value == label_value:
+            return True
+
+    return False
+
 @kopf.on.startup()
 def startup_tasks(settings: kopf.OperatorSettings, logger, **_):
     """Perform all necessary startup tasks here. Keep them lightweight and relevant
@@ -43,20 +62,20 @@ def startup_tasks(settings: kopf.OperatorSettings, logger, **_):
     if get_env_var_bool('UNIQUE_FILENAMES'):
         logger.info("Unique filenames will be enforced.")
 
-@kopf.on.resume('', 'v1', 'configmaps', labels={LABEL: kopf.PRESENT})
-@kopf.on.create('', 'v1', 'configmaps', labels={LABEL: kopf.PRESENT})
-@kopf.on.update('', 'v1', 'configmaps', labels={LABEL: kopf.PRESENT})
-@kopf.on.resume('', 'v1', 'secrets', labels={LABEL: kopf.PRESENT})
-@kopf.on.create('', 'v1', 'secrets', labels={LABEL: kopf.PRESENT})
-@kopf.on.update('', 'v1', 'secrets', labels={LABEL: kopf.PRESENT})
+@kopf.on.resume('', 'v1', 'configmaps', when=label_is_satisfied)
+@kopf.on.create('', 'v1', 'configmaps', when=label_is_satisfied)
+@kopf.on.update('', 'v1', 'configmaps', when=label_is_satisfied)
+@kopf.on.resume('', 'v1', 'secrets', when=label_is_satisfied)
+@kopf.on.create('', 'v1', 'secrets', when=label_is_satisfied)
+@kopf.on.update('', 'v1', 'secrets', when=label_is_satisfied)
 async def cru_fn(body, event, logger, **_):
     try:
         await write_file(event, body, logger)
     except asyncio.CancelledError:
         logger.info(f"Write file cancelled for {body['kind']}")
 
-@kopf.on.delete('', 'v1', 'configmaps', labels={LABEL: kopf.PRESENT})
-@kopf.on.delete('', 'v1', 'secrets', labels={LABEL: kopf.PRESENT})
+@kopf.on.delete('', 'v1', 'configmaps', when=label_is_satisfied)
+@kopf.on.delete('', 'v1', 'secrets', when=label_is_satisfied)
 async def delete_fn(body, logger, **_):
     try:
         await delete_file(body, logger)
