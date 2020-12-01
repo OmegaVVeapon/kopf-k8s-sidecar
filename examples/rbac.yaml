@@ -7,6 +7,13 @@ rules:
   - apiGroups: [""]
     resources: ["configmaps", "secrets"]
     verbs: ["get", "watch", "list", "patch"]
+  # Framework: posting the events about the handlers progress/errors.
+  # - apiGroups: [events.k8s.io]
+  #   resources: [events]
+  #   verbs: [create]
+  # - apiGroups: [""]
+  #   resources: [events]
+  #   verbs: [create]
 ---
 apiVersion: v1
 kind: ServiceAccount
