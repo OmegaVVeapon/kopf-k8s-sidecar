@@ -1,5 +1,6 @@
 import os
 import sys
+import base64
 
 def get_required_env_var(name):
     """Returns value of a required environment variable. Fails if not found"""
@@ -22,3 +23,7 @@ def get_env_var_int(name, default, logger):
     except TypeError:
         logger.warning(f"""Expected an integer value for {name} and got {env_var}.
 Using default {default} instead""")
+
+def get_base64_decoded(content):
+    """Returns the base64-decoded content"""
+    return base64.b64decode(content).decode()
