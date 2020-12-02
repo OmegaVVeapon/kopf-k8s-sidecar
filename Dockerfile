@@ -33,4 +33,9 @@ COPY app/ .
 
 COPY ./docker-entrypoint.sh .
 ENTRYPOINT ["./docker-entrypoint.sh"]
+
+# Use the nobody user's numeric UID/GID to satisfy MustRunAsNonRoot PodSecurityPolicies
+# https://kubernetes.io/docs/concepts/policy/pod-security-policy/#users-and-groups
+USER 65534:65534
+
 CMD ["kopf-k8s-sidecar"]
