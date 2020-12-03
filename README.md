@@ -28,6 +28,9 @@ Once that's done, you can view the `sidecar` container logs to view events happe
 
 Similarly, you can view the `bash` container logs to see how the files defined by your `ConfigMap`s and `Secret`s are populated there.
 
+## Dockerhub
+
+All tags are automatically built and pushed to [Dockerhub](https://hub.docker.com/r/omegavveapon/kopf-k8s-sidecar).
 
 ## Configuration Environment Variables
 
