@@ -25,6 +25,14 @@ def label_is_satisfied(meta, **_):
 
     return False
 
+def resource_is_desired(body, **_):
+    """Runs the logic for the RESOURCE environment variable"""
+    resource = os.getenv('RESOURCE', 'configmap')
+
+    kind = body['kind'].lower()
+
+    return resource in (kind, 'both')
+
 @kopf.on.startup()
 def startup_tasks(settings: kopf.OperatorSettings, logger, **_):
     """Perform all necessary startup tasks here. Keep them lightweight and relevant
@@ -32,6 +40,15 @@ def startup_tasks(settings: kopf.OperatorSettings, logger, **_):
 
     # Check that the required environment variables are present before we start
     folder = get_required_env_var('FOLDER')
+
+    # Create the folder from which we will write/delete files
+    create_folder(folder, logger)
+
+    # Check that the user used a sane value for RESOURCE
+    resource = os.getenv('RESOURCE', 'configmap')
+    valid_resources = ['configmap', 'secret', 'both']
+    if resource not in valid_resources:
+        logger.error(f"RESOURCE should be one of [{', '.join(valid_resources)}]. Resources won't match until this is fixed!")
 
     # Replace the default marker with something less cryptic
     settings.persistence.finalizer = 'kopf.zalando.org/K8sSidecarFinalizerMarker'
@@ -56,26 +73,23 @@ def startup_tasks(settings: kopf.OperatorSettings, logger, **_):
     # Set k8s event logging
     settings.posting.enabled = get_env_var_bool('EVENT_LOGGING')
 
-    # Create the folder from which we will write/delete files
-    create_folder(folder, logger)
-
     if get_env_var_bool('UNIQUE_FILENAMES'):
         logger.info("Unique filenames will be enforced.")
 
-@kopf.on.resume('', 'v1', 'configmaps', when=label_is_satisfied)
-@kopf.on.create('', 'v1', 'configmaps', when=label_is_satisfied)
-@kopf.on.update('', 'v1', 'configmaps', when=label_is_satisfied)
-@kopf.on.resume('', 'v1', 'secrets', when=label_is_satisfied)
-@kopf.on.create('', 'v1', 'secrets', when=label_is_satisfied)
-@kopf.on.update('', 'v1', 'secrets', when=label_is_satisfied)
+@kopf.on.resume('', 'v1', 'configmaps', when=kopf.all_([label_is_satisfied, resource_is_desired]))
+@kopf.on.create('', 'v1', 'configmaps', when=kopf.all_([label_is_satisfied, resource_is_desired]))
+@kopf.on.update('', 'v1', 'configmaps', when=kopf.all_([label_is_satisfied, resource_is_desired]))
+@kopf.on.resume('', 'v1', 'secrets', when=kopf.all_([label_is_satisfied, resource_is_desired]))
+@kopf.on.create('', 'v1', 'secrets', when=kopf.all_([label_is_satisfied, resource_is_desired]))
+@kopf.on.update('', 'v1', 'secrets', when=kopf.all_([label_is_satisfied, resource_is_desired]))
 async def cru_fn(body, event, logger, **_):
     try:
         await write_file(event, body, logger)
     except asyncio.CancelledError:
         logger.info(f"Write file cancelled for {body['kind']}")
 
-@kopf.on.delete('', 'v1', 'configmaps', when=label_is_satisfied)
-@kopf.on.delete('', 'v1', 'secrets', when=label_is_satisfied)
+@kopf.on.delete('', 'v1', 'configmaps', when=kopf.all_([label_is_satisfied, resource_is_desired]))
+@kopf.on.delete('', 'v1', 'secrets', when=kopf.all_([label_is_satisfied, resource_is_desired]))
 async def delete_fn(body, logger, **_):
     try:
         await delete_file(body, logger)
