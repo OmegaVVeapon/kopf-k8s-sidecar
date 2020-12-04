@@ -41,6 +41,15 @@ def startup_tasks(settings: kopf.OperatorSettings, logger, **_):
     # Check that the required environment variables are present before we start
     folder = get_required_env_var('FOLDER')
 
+    # Create the folder from which we will write/delete files
+    create_folder(folder, logger)
+
+    # Check that the user used a sane value for RESOURCE
+    resource = os.getenv('RESOURCE', 'configmap')
+    valid_resources = ['configmap', 'secret', 'both']
+    if resource not in valid_resources:
+        logger.error(f"RESOURCE should be one of [{', '.join(valid_resources)}]. Resources won't match until this is fixed!")
+
     # Replace the default marker with something less cryptic
     settings.persistence.finalizer = 'kopf.zalando.org/K8sSidecarFinalizerMarker'
 
@@ -63,9 +72,6 @@ def startup_tasks(settings: kopf.OperatorSettings, logger, **_):
 
     # Set k8s event logging
     settings.posting.enabled = get_env_var_bool('EVENT_LOGGING')
-
-    # Create the folder from which we will write/delete files
-    create_folder(folder, logger)
 
     if get_env_var_bool('UNIQUE_FILENAMES'):
         logger.info("Unique filenames will be enforced.")
