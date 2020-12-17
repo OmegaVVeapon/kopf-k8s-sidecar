@@ -4,7 +4,7 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-kopf = "==0.28"
+kopf = "==0.28.3"
 
 [dev-packages]
 kubernetes = "*"
