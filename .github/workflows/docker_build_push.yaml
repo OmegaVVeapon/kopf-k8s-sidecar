@@ -31,8 +31,8 @@ jobs:
           # if [ "${{ github.event_name }}" = "push" ]; then
           #   TAGS="$TAGS,${DOCKER_IMAGE}:sha-${GITHUB_SHA::8}"
           # fi
-          # if we created a tag, we also want publish a new latest image
-          if [ "${{ github.event_name }}" = "push" ] && [ "${{ github.event.ref_type }}" = "tag" ]; then
+          # if we pushed a tag, we also want publish a new latest image
+          if [[ $GITHUB_REF == refs/tags/* ]]; then
             TAGS="$TAGS,${DOCKER_IMAGE}:latest"
           fi
           echo ::set-output name=version::${VERSION}
