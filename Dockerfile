@@ -1,4 +1,4 @@
-FROM python:3.7 as base
+FROM python:3.8 as base
 
 # Setup env
 ENV LANG C.UTF-8
@@ -36,6 +36,7 @@ ENTRYPOINT ["./docker-entrypoint.sh"]
 
 # Use the nobody user's numeric UID/GID to satisfy MustRunAsNonRoot PodSecurityPolicies
 # https://kubernetes.io/docs/concepts/policy/pod-security-policy/#users-and-groups
+# IMPORTANT: This user can be overriden by a k8s SecurityContext!
 USER 65534:65534
 
 CMD ["kopf-k8s-sidecar"]
