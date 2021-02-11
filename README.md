@@ -61,7 +61,7 @@ Finalizers allow controllers (which operators are a subset of) to perform given 
 
 Since we want `kopf-k8s-sidecar` to delete previously created files when a resource is removed, finalizers are added to ensure this task is performed by the operator.
 
-If the operator is down, resources managed by it won't be able to be deleted.
+**If the operator is down, resources managed by it won't be able to be deleted.**
 
 To resolve this, simply restart the operator container or patch the finalizers out of the resource that you want to forcibly remove.
 
