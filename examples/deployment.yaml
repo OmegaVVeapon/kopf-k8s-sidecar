@@ -49,6 +49,8 @@ spec:
               value: "yea"
             - name: FOLDER
               value: /tmp/
+            - name: FOLDER_ANNOTATION
+              value: "annotation-path"
             - name: RESOURCE
               value: both
       volumes:

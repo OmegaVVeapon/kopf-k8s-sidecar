@@ -15,6 +15,18 @@ data:
 apiVersion: v1
 kind: ConfigMap
 metadata:
+  name: sample-configmap-different-folder
+  annotations:
+    annotation-path: "/tmp/bar/foo"
+  labels:
+    findme: "yea"
+data:
+  default-annotation: |-
+     This file should be in /tmp/bar/foo
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
   name: sample-configmap
   labels:
     findme: "yea"
