@@ -9,7 +9,7 @@ def create_folder(folder, logger):
     permissions to create the directory, log an error and return.
     """
     if not os.path.exists(folder):
-        logger.info(f"Creating folder {folder}")
+        logger.debug(f"Creating folder {folder}")
         try:
             os.makedirs(folder)
         except OSError as e:
@@ -18,15 +18,34 @@ def create_folder(folder, logger):
             if e.errno == errno.EACCES:
                 logger.error(f"Insufficient privileges to create folder {folder}.")
                 return
-    logger.info(f"Folder {folder} already exists. Skipping creation.")
+    logger.debug(f"Folder {folder} already exists. Skipping creation.")
 
-async def get_filepath(filename, body):
+async def get_folder(metadata):
+    """
+    Handles the logic to determine which folder this resource needs to be written to
+    and returns it.
+    It takes into account the FOLDER, FOLDER_ANNOTATION and the resource's annotations
+    """
+    folder = os.environ['FOLDER']
+
+    # If there's no annotations, just return the original FOLDER immediately
+    if 'annotations' not in metadata:
+        return folder
+
+    annotations = metadata['annotations']
+
+    folder_annotation = os.getenv('FOLDER_ANNOTATION', 'k8s-sidecar-target-directory')
+
+    if folder_annotation in annotations:
+        folder = annotations[folder_annotation]
+
+    return folder
+
+async def get_filepath(filename, folder, body):
     """
     Returns unique path if UNIQUE_FILENAMES are desired.
     Otherwise, simply returns the concatenated filename with the folder.
     """
-    folder = os.environ['FOLDER']
-
     if get_env_var_bool('UNIQUE_FILENAMES'):
         namespace = 'default'
         if 'namespace' in body['metadata']:
@@ -43,8 +62,10 @@ async def get_filepath(filename, body):
 async def delete_file(body, logger):
     resource_kind = body['kind']
 
+    folder = await get_folder(body['metadata'])
+
     for filename in body['data'].keys():
-        filepath = await get_filepath(filename, body)
+        filepath = await get_filepath(filename, folder, body)
         logger.info(f"[DELETE:{resource_kind}] Deleting file {filepath}.")
         try:
             os.remove(filepath)
@@ -60,8 +81,11 @@ async def write_file(event, body, logger):
     resource_kind = body['kind']
     event = event.upper()
 
+    folder = await get_folder(body['metadata'])
+    create_folder(folder, logger)
+
     for filename, content in body['data'].items():
-        filepath = await get_filepath(filename, body)
+        filepath = await get_filepath(filename, folder, body)
 
         if resource_kind == 'Secret':
             content = get_base64_decoded(content)

@@ -38,6 +38,7 @@ All tags are automatically built and pushed to [Dockerhub](https://hub.docker.co
 | --- |:---:|:---:| --- |
 | LABEL | <b>Yes</b> | None | Label that should be used for filtering |
 | FOLDER | <b>Yes</b> | None | Folder where the files should be placed. |
+| FOLDER_ANNOTATION | No | 'k8s-sidecar-target-directory' | The annotation the sidecar will look for in configmaps to override the destination folder for files |
 | LABEL_VALUE | No | None | The value for the label you want to filter your resources on.<br>Don't set a value to filter by any value |
 | NAMESPACE | No | 'ALL' | The namespace from which resources will be watched.<br>If not set or set to `ALL`, it will watch all namespaces. |
 | RESOURCE | No | 'configmap' | The resource type that the operator will filter for. Can be 'configmap', 'secret' or 'both' |
@@ -60,7 +61,7 @@ Finalizers allow controllers (which operators are a subset of) to perform given 
 
 Since we want `kopf-k8s-sidecar` to delete previously created files when a resource is removed, finalizers are added to ensure this task is performed by the operator.
 
-If the operator is down, resources managed by it won't be able to be deleted.
+**If the operator is down, resources managed by it won't be able to be deleted.**
 
 To resolve this, simply restart the operator container or patch the finalizers out of the resource that you want to forcibly remove.
 
