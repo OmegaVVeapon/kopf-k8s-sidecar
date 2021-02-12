@@ -38,7 +38,7 @@ All tags are automatically built and pushed to [Dockerhub](https://hub.docker.co
 | --- |:---:|:---:| --- |
 | LABEL | <b>Yes</b> | None | Label that should be used for filtering |
 | FOLDER | <b>Yes</b> | None | Folder where the files should be placed. |
-| FOLDER_ANNOTATION | No | k8s-sidecar-target-directory | The annotation the sidecar will look for in configmaps to override the destination folder for files |
+| FOLDER_ANNOTATION | No | 'k8s-sidecar-target-directory' | The annotation the sidecar will look for in configmaps to override the destination folder for files |
 | LABEL_VALUE | No | None | The value for the label you want to filter your resources on.<br>Don't set a value to filter by any value |
 | NAMESPACE | No | 'ALL' | The namespace from which resources will be watched.<br>If not set or set to `ALL`, it will watch all namespaces. |
 | RESOURCE | No | 'configmap' | The resource type that the operator will filter for. Can be 'configmap', 'secret' or 'both' |
