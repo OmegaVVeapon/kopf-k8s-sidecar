@@ -36,20 +36,22 @@ All tags are automatically built and pushed to [Dockerhub](https://hub.docker.co
 
 | Variable | Required? | Default | Description |
 | --- |:---:|:---:| --- |
-| LABEL | <b>Yes</b> | None | Label that should be used for filtering |
-| FOLDER | <b>Yes</b> | None | Folder where the files should be placed. |
-| FOLDER_ANNOTATION | No | 'k8s-sidecar-target-directory' | The annotation the sidecar will look for in configmaps to override the destination folder for files |
-| LABEL_VALUE | No | None | The value for the label you want to filter your resources on.<br>Don't set a value to filter by any value |
-| NAMESPACE | No | 'ALL' | The namespace from which resources will be watched.<br>If not set or set to `ALL`, it will watch all namespaces. |
-| RESOURCE | No | 'configmap' | The resource type that the operator will filter for. Can be 'configmap', 'secret' or 'both' |
-| DEFAULT_FILE_MODE | No | 644 | The default file system permission for every file. Use three digits (e.g. '500', '440', ...) |
-| VERBOSE | No | False | A value of 'true' will enable the kopf verbose logs |
-| DEBUG | No | False | A value of 'true' will enable the kopf debug logs |
-| LIVENESS | No | True | A value of 'false' will disable the kopf liveness probe |
-| WATCH_CLIENT_TIMEOUT | No | 660 | (seconds) is how long the session with a watching request will exist before closing it from the client side. This includes the connection establishing and event streaming. |
-| WATCH_SERVER_TIMEOUT | No | 600 | (seconds) is how long the session with a watching request will exist before closing it from the server side. This value is passed to the server side in a query string, and the server decides on how to follow it. The watch-stream is then gracefully closed. |
-| EVENT_LOGGING | No | False | A value of 'true' will allow the operator to log directly to k8s events (`kubectl get events`).<br>Note that if you enable this, you'll need to provide the operator with RBAC access to `events` resources, see an example of how to do this in [rbac.yaml](examples/rbac.yaml) |
-| UNIQUE_FILENAMES | No | False | A value of 'true' will produce unique filenames to avoid issues when duplicate data keys exist between ConfigMaps and/or Secrets within the same or multiple Namespaces. |
+| LABEL | <b>Yes</b> | `None` | Label that should be used for filtering |
+| FOLDER | <b>Yes</b> | `None` | Folder where the files should be placed. |
+| FOLDER_ANNOTATION | No | `k8s-sidecar-target-directory` | The annotation the sidecar will look for in `ConfigMap`s and/or `Secret`s to override the destination folder for files |
+| LABEL_VALUE | No | `None` | The value for the label you want to filter your resources on.<br>Don't set a value to filter by any value |
+| NAMESPACE | No | `ALL` | The `Namespace` from which resources will be watched.<br>If not set or set to `ALL`, it will watch all `Namespace`s. |
+| RESOURCE | No | `configmap` | The resource type that the operator will filter for. Can be `ConfigMap`, `Secret` or `both` |
+| METHOD | No | `WATCH` | Determines how kopf-k8s-sidecar will run. If `WATCH` it will run like like a normal operator **forever**. 
+If `LIST` it will gather the matching configmaps and secrets currently present, write those files to the destination directory and **die** |
+| DEFAULT_FILE_MODE | No | `644` | The default file system permission for every file. Use three digits (e.g. '500', '440', ...) |
+| VERBOSE | No | `False` | A value of `true` will enable the kopf verbose logs |
+| DEBUG | No | `False` | A value of `true` will enable the kopf debug logs |
+| LIVENESS | No | `True` | A value of `false` will disable the kopf liveness probe |
+| WATCH_CLIENT_TIMEOUT | No | `660` | (seconds) is how long the session with a watching request will exist before closing it from the client side. This includes the connection establishing and event streaming. |
+| WATCH_SERVER_TIMEOUT | No | `600` | (seconds) is how long the session with a watching request will exist before closing it from the server side. This value is passed to the server side in a query string, and the server decides on how to follow it. The watch-stream is then gracefully closed. |
+| EVENT_LOGGING | No | `False` | A value of `true` will allow the operator to log directly to k8s events (`kubectl get events`).<br>Note that if you enable this, you'll need to provide the operator with RBAC access to `Event`s resources, see an example of how to do this in [rbac.yaml](examples/rbac.yaml) |
+| UNIQUE_FILENAMES | No (but recommended!) | `False` | A value of `true` will produce unique filenames to avoid issues when duplicate data keys exist between `ConfigMap`s and/or `Secret`s within the same or multiple `Namespace`s. |
 
 ## Gotchas
 
