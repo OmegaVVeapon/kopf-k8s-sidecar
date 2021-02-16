@@ -60,8 +60,8 @@ def startup_tasks(settings: kopf.OperatorSettings, logger, **_):
 @kopf.on.resume('', 'v1', 'secrets', when=kopf.all_([label_is_satisfied, resource_is_desired]))
 @kopf.on.create('', 'v1', 'secrets', when=kopf.all_([label_is_satisfied, resource_is_desired]))
 @kopf.on.update('', 'v1', 'secrets', when=kopf.all_([label_is_satisfied, resource_is_desired]))
-def cru_fn(body, event, logger, **_):
-    write_file(event, body, body['kind'], logger)
+def cru_fn(body, reason, logger, **_):
+    write_file(reason, body, body['kind'], logger)
 
 @kopf.on.delete('', 'v1', 'configmaps', when=kopf.all_([label_is_satisfied, resource_is_desired]))
 @kopf.on.delete('', 'v1', 'secrets', when=kopf.all_([label_is_satisfied, resource_is_desired]))
