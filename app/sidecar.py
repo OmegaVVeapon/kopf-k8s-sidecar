@@ -1,37 +1,12 @@
 import os
 import asyncio
-import kopf
+import threading
+import contextlib
 from misc import get_required_env_var, get_env_var_bool, get_env_var_int
-from io_helpers import create_folder, write_file, delete_file
-
-LABEL = get_required_env_var('LABEL')
-
-def label_is_satisfied(meta, **_):
-    """Runs the logic for LABEL and LABEL_VALUE and tells us if we need to watch the resource"""
-    label_value = os.getenv('LABEL_VALUE')
-
-    # if there are no labels in the resource, there's no point in checking further
-    if 'labels' not in meta:
-        return False
-
-    # If LABEL_VALUE wasn't set but we find the LABEL, that's good enough
-    if label_value is None and LABEL in meta['labels'].keys():
-        return True
-
-    # If LABEL_VALUE was set, it needs to be the value of LABEL for one of the key-vars in the dict
-    for key, value in meta['labels'].items():
-        if key == LABEL and value == label_value:
-            return True
-
-    return False
-
-def resource_is_desired(body, **_):
-    """Runs the logic for the RESOURCE environment variable"""
-    resource = os.getenv('RESOURCE', 'configmap')
-
-    kind = body['kind'].lower()
-
-    return resource in (kind, 'both')
+from io_helpers import write_file, delete_file
+from conditions import label_is_satisfied, resource_is_desired
+from list_mode import one_run
+import kopf
 
 @kopf.on.startup()
 def startup_tasks(settings: kopf.OperatorSettings, logger, **_):
@@ -39,10 +14,8 @@ def startup_tasks(settings: kopf.OperatorSettings, logger, **_):
     as the other handlers won't be initialized until these tasks are complete"""
 
     # Check that the required environment variables are present before we start
-    folder = get_required_env_var('FOLDER')
-
-    # Create the folder from which we will write/delete files
-    create_folder(folder, logger)
+    get_required_env_var('FOLDER')
+    get_required_env_var('LABEL')
 
     # Check that the user used a sane value for RESOURCE
     resource = os.getenv('RESOURCE', 'configmap')
@@ -58,6 +31,11 @@ def startup_tasks(settings: kopf.OperatorSettings, logger, **_):
     # See https://github.com/nolar/kopf/issues/585
     client_timeout = get_env_var_int('WATCH_CLIENT_TIMEOUT', 660, logger)
     server_timeout = get_env_var_int('WATCH_SERVER_TIMEOUT', 600, logger)
+
+    # Running the operator as a standalone
+    # https://kopf.readthedocs.io/en/stable/peering/?highlight=standalone#standalone-mode
+    # TODO: INVESTIGATE WHY THIS ISN'T WORKING!
+    #  settings.peering.standalone = True
 
     logger.info(f"Client watching requests using a timeout of {client_timeout} seconds")
     settings.watching.client_timeout = client_timeout
@@ -82,16 +60,49 @@ def startup_tasks(settings: kopf.OperatorSettings, logger, **_):
 @kopf.on.resume('', 'v1', 'secrets', when=kopf.all_([label_is_satisfied, resource_is_desired]))
 @kopf.on.create('', 'v1', 'secrets', when=kopf.all_([label_is_satisfied, resource_is_desired]))
 @kopf.on.update('', 'v1', 'secrets', when=kopf.all_([label_is_satisfied, resource_is_desired]))
-async def cru_fn(body, event, logger, **_):
-    try:
-        await write_file(event, body, logger)
-    except asyncio.CancelledError:
-        logger.info(f"Write file cancelled for {body['kind']}")
+def cru_fn(body, event, logger, **_):
+    write_file(event, body, body['kind'], logger)
 
 @kopf.on.delete('', 'v1', 'configmaps', when=kopf.all_([label_is_satisfied, resource_is_desired]))
 @kopf.on.delete('', 'v1', 'secrets', when=kopf.all_([label_is_satisfied, resource_is_desired]))
-async def delete_fn(body, logger, **_):
-    try:
-        await delete_file(body, logger)
-    except asyncio.CancelledError:
-        logger.info(f"Delete file cancelled for {body['kind']}")
+def delete_fn(body, logger, **_):
+    delete_file(body, body['kind'], logger)
+
+def kopf_thread(
+        ready_flag: threading.Event,
+        stop_flag: threading.Event,
+):
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    with contextlib.closing(loop):
+
+        # It seems like we can only control the logging level here when running in embedded mode...
+        kopf.configure(verbose=True)  # log formatting
+
+        loop.run_until_complete(kopf.operator(
+            ready_flag=ready_flag,
+            stop_flag=stop_flag,
+        ))
+
+def main():
+    # Start the operator and let it initialise.
+    print(f"Starting the main app.")
+
+    method = os.getenv('METHOD', 'WATCH')
+
+    if method == 'WATCH':
+        ready_flag = threading.Event()
+        stop_flag = threading.Event()
+        thread = threading.Thread(target=kopf_thread, kwargs=dict(
+            stop_flag=stop_flag,
+            ready_flag=ready_flag,
+        ))
+        thread.start()
+        ready_flag.wait()
+    elif method == 'LIST':
+        one_run()
+    else:
+        print(f"METHOD {method} is not supported! Valid METHODs are 'WATCH' or 'LIST'")
+
+if __name__ == '__main__':
+    main()

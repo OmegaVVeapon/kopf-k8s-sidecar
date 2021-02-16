@@ -25,12 +25,13 @@ spec:
           command: ["watch"]
           args: ["for file in /tmp/*; do tail -v -n +1 $file; echo; done"]
         - name: sidecar
+          imagePullPolicy: Always
           # image: kiwigrid/k8s-sidecar:latest
-          image: omegavveapon/kopf-k8s-sidecar:latest
-          livenessProbe:
-            httpGet:
-              path: /healthz
-              port: 8080
+          image: omegavveapon/kopf-k8s-sidecar:fix-init-container
+          # livenessProbe:
+          #   httpGet:
+          #     path: /healthz
+          #     port: 8080
           volumeMounts:
             - name: shared-volume
               mountPath: /tmp/
@@ -43,6 +44,8 @@ spec:
             #   value: "true"
             # - name: NAMESPACE
             #   value: default
+            # - name: METHOD
+            #   value: "LIST"
             - name: LABEL
               value: "findme"
             - name: LABEL_VALUE
