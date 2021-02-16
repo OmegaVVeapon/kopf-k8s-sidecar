@@ -4,11 +4,11 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-kopf = "==0.28.3"
+kopf = "==1.29.2"
+pykube-ng = "==20.10.0"
 
 [dev-packages]
 kubernetes = "*"
-configargparse = "*"
 
 [requires]
 python_version = "3.8"
