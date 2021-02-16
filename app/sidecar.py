@@ -34,8 +34,7 @@ def startup_tasks(settings: kopf.OperatorSettings, logger, **_):
 
     # Running the operator as a standalone
     # https://kopf.readthedocs.io/en/stable/peering/?highlight=standalone#standalone-mode
-    # TODO: INVESTIGATE WHY THIS ISN'T WORKING!
-    #  settings.peering.standalone = True
+    settings.peering.standalone = True
 
     logger.info(f"Client watching requests using a timeout of {client_timeout} seconds")
     settings.watching.client_timeout = client_timeout
