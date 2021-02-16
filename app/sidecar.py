@@ -76,8 +76,12 @@ def kopf_thread(
     asyncio.set_event_loop(loop)
     with contextlib.closing(loop):
 
-        # It seems like we can only control the logging level here when running in embedded mode...
-        kopf.configure(verbose=True)  # log formatting
+        # Since we're using an embedded operator we can't rely on CLI options to configure the logger
+        # we have to do it here, before we start the operator
+        kopf.configure(
+            debug=get_env_var_bool("DEBUG"),
+            verbose=get_env_var_bool("VERBOSE")
+        )
 
         loop.run_until_complete(kopf.operator(
             ready_flag=ready_flag,
@@ -86,8 +90,6 @@ def kopf_thread(
 
 def main():
     # Start the operator and let it initialise.
-    print(f"Starting the main app.")
-
     method = os.getenv('METHOD', 'WATCH')
 
     if method == 'WATCH':

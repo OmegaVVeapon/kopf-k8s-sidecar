@@ -3,9 +3,9 @@ set -e
 
 if [ "$1" = 'kopf-k8s-sidecar' ]; then
 
-    # command=("kopf" "run" "sidecar.py")
     command=("python" "sidecar.py")
 
+    # command=("kopf" "run" "sidecar.py")
     # [[ "$VERBOSE" = "true" ]] && command+=("--verbose")
     # [[ "$DEBUG" = "true" ]] && command+=("--debug")
     # [ -n "$NAMESPACE" ] && [ "$NAMESPACE" != "ALL" ] && echo "Only watching resources from the ${NAMESPACE} namespace" && command+=("--namespace=${NAMESPACE}")
