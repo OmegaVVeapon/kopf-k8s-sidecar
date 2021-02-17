@@ -113,6 +113,10 @@ def main():
     # Start the operator and let it initialise.
     method = os.getenv('METHOD', 'WATCH')
 
+    # The Grafana Helm chart guys pass an empty string for METHOD env var instead of just leaving it leaving it unset...
+    if not method:
+        method = 'WATCH'
+
     if method == 'WATCH':
         ready_flag = threading.Event()
         stop_flag = threading.Event()
