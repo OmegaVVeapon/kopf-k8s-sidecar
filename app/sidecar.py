@@ -82,6 +82,11 @@ def kopf_thread(
             verbose=get_env_var_bool("VERBOSE")
         )
 
+        if os.getenv("LIVENESS") == 'false':
+            print("Liveness /healthz endpoint has been explicitely disabled!")
+        else:
+            liveness_endpoint = "http://0.0.0.0:8080/healthz"
+
         # Here we set the scoping for the operator
         # We will either check for Secrets and Configmaps in the entire cluster or a subset of namespaces
         namespace = os.getenv('NAMESPACE')
@@ -95,6 +100,7 @@ def kopf_thread(
             namespaces = namespace.replace(" ", "").split(',')
 
         loop.run_until_complete(kopf.operator(
+            liveness_endpoint=liveness_endpoint,
             clusterwide=clusterwide,
             namespaces=namespaces,
             ready_flag=ready_flag,
