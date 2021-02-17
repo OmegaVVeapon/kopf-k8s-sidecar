@@ -1,7 +1,6 @@
 import os
 import sys
 import base64
-import logging
 
 def get_required_env_var(name):
     """Returns value of a required environment variable. Fails if not found"""
