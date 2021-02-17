@@ -2,6 +2,7 @@ import os
 import pykube
 from io_helpers import write_file
 from conditions import label_is_satisfied
+from misc import log_env_vars
 import logging
 
 def _get_configmaps(namespace):
@@ -32,6 +33,9 @@ def one_run():
 
     logging.basicConfig(format='%(asctime)s %(message)s', level=logging.INFO)
     logger = logging.getLogger(__name__)
+
+    # Log some useful variables for troubleshooting
+    log_env_vars(logger)
 
     # Get the user-defined namespace(s), if not specified (or if "ALL"), look in all of them
     namespaces = os.getenv("NAMESPACE")

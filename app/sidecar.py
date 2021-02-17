@@ -2,7 +2,7 @@ import os
 import asyncio
 import threading
 import contextlib
-from misc import get_required_env_var, get_env_var_bool, get_env_var_int
+from misc import get_required_env_var, get_env_var_bool, get_env_var_int, log_env_vars
 from io_helpers import write_file, delete_file
 from conditions import label_is_satisfied, resource_is_desired
 from list_mode import one_run
@@ -13,26 +13,8 @@ def startup_tasks(settings: kopf.OperatorSettings, logger, **_):
     """Perform all necessary startup tasks here. Keep them lightweight and relevant
     as the other handlers won't be initialized until these tasks are complete"""
 
-    # Check that the required environment variables are present before we start
-    folder = get_required_env_var('FOLDER')
-    logger.info(f"The default folder to write files to is {folder}")
-
-    label = get_required_env_var('LABEL')
-    label_value = os.getenv('LABEL_VALUE')
-    if label_value:
-        logger.info(f"Looking for resources with label '{label}' and value '{label_value}'")
-    else:
-        logger.info(f"Looking for resources with label '{label}'")
-
-    # Check that the user used a sane value for RESOURCE
-    resource = os.getenv('RESOURCE', 'configmap')
-    valid_resources = ['configmap', 'secret', 'both']
-    if resource not in valid_resources:
-        logger.error(f"RESOURCE should be one of [{', '.join(valid_resources)}]. Resources won't match until this is fixed!")
-    else:
-        if resource == 'both':
-            resource = 'configmap and secret'
-        logger.info(f"Monitoring {resource} resources for changes")
+    # Log some useful variables for troubleshooting
+    log_env_vars(logger)
 
     # Replace the default marker with something less cryptic
     settings.persistence.finalizer = 'kopf.zalando.org/K8sSidecarFinalizerMarker'
@@ -60,9 +42,6 @@ def startup_tasks(settings: kopf.OperatorSettings, logger, **_):
 
     # Set k8s event logging
     settings.posting.enabled = get_env_var_bool('EVENT_LOGGING')
-
-    if get_env_var_bool('UNIQUE_FILENAMES'):
-        logger.info("Unique filenames will be enforced.")
 
 @kopf.on.resume('', 'v1', 'configmaps', when=kopf.all_([label_is_satisfied, resource_is_desired]))
 @kopf.on.create('', 'v1', 'configmaps', when=kopf.all_([label_is_satisfied, resource_is_desired]))
@@ -124,10 +103,9 @@ def kopf_thread(
         ))
 
 def main():
-    # Start the operator and let it initialise.
     method = os.getenv('METHOD', 'WATCH')
 
-    # The Grafana Helm chart guys pass an empty string for METHOD env var instead of just leaving it unset...
+    # The Grafana Helm chart guys pass an empty string for METHOD env var instead of just leaving it unset so os.getenv doesn't work correctly...
     if not method:
         method = 'WATCH'
 
