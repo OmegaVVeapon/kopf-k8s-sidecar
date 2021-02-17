@@ -33,21 +33,26 @@ def one_run():
     logging.basicConfig(format='%(asctime)s %(message)s', level=logging.INFO)
     logger = logging.getLogger(__name__)
 
-    # Get the user-defined namespace, if not specified (or if "ALL"), look in all of them
-    namespace = os.getenv("NAMESPACE", pykube.all)
-    if namespace == "ALL":
-        namespace = pykube.all
+    # Get the user-defined namespace(s), if not specified (or if "ALL"), look in all of them
+    namespaces = os.getenv("NAMESPACE")
+
+    if namespaces is None or namespaces == "ALL":
+        namespaces = [pykube.all]
+    else:
+        namespaces = namespaces.replace(" ", "").split(',')
 
     resource = os.getenv('RESOURCE', 'configmap')
 
     if resource in ('configmap', 'both'):
-        configmaps = _get_configmaps(namespace)
-        for configmap in configmaps:
-            if label_is_satisfied(configmap.obj['metadata']):
-                write_file("create", configmap.obj, configmap.kind, logger)
+        for namespace in namespaces:
+            configmaps = _get_configmaps(namespace)
+            for configmap in configmaps:
+                if label_is_satisfied(configmap.obj['metadata']):
+                    write_file("create", configmap.obj, configmap.kind, logger)
 
     if resource in ('secret', 'both'):
-        secrets = _get_secrets(namespace)
-        for secret in secrets:
-            if label_is_satisfied(secret.obj['metadata']):
-                write_file("create", secret.obj, secret.kind, logger)
+        for namespace in namespaces:
+            secrets = _get_secrets(namespace)
+            for secret in secrets:
+                if label_is_satisfied(secret.obj['metadata']):
+                    write_file("create", secret.obj, secret.kind, logger)
