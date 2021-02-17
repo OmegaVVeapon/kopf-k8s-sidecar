@@ -82,6 +82,8 @@ def kopf_thread(
             verbose=get_env_var_bool("VERBOSE")
         )
 
+        liveness_endpoint = None
+
         if os.getenv("LIVENESS") == 'false':
             print("Liveness /healthz endpoint has been explicitely disabled!")
         else:

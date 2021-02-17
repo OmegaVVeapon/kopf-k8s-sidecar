@@ -56,6 +56,8 @@ spec:
               value: "annotation-path"
             - name: RESOURCE
               value: both
+            # - name: LIVENESS
+            #   value: "false"
       volumes:
         - name: shared-volume
           emptyDir: {}
