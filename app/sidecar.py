@@ -14,14 +14,25 @@ def startup_tasks(settings: kopf.OperatorSettings, logger, **_):
     as the other handlers won't be initialized until these tasks are complete"""
 
     # Check that the required environment variables are present before we start
-    get_required_env_var('FOLDER')
-    get_required_env_var('LABEL')
+    folder = get_required_env_var('FOLDER')
+    logger.info(f"The default folder to write files to is {folder}")
+
+    label = get_required_env_var('LABEL')
+    label_value = os.getenv('LABEL_VALUE')
+    if label_value:
+        logger.info(f"Looking for resources with label '{label}' and value '{label_value}'")
+    else:
+        logger.info(f"Looking for resources with label '{label}'")
 
     # Check that the user used a sane value for RESOURCE
     resource = os.getenv('RESOURCE', 'configmap')
     valid_resources = ['configmap', 'secret', 'both']
     if resource not in valid_resources:
         logger.error(f"RESOURCE should be one of [{', '.join(valid_resources)}]. Resources won't match until this is fixed!")
+    else:
+        if resource == 'both':
+            resource = 'configmap and secret'
+        logger.info(f"Monitoring {resource} resources for changes")
 
     # Replace the default marker with something less cryptic
     settings.persistence.finalizer = 'kopf.zalando.org/K8sSidecarFinalizerMarker'
@@ -88,6 +99,7 @@ def kopf_thread(
             print("Liveness /healthz endpoint has been explicitely disabled!")
         else:
             liveness_endpoint = "http://0.0.0.0:8080/healthz"
+            print(f"Exposing liveness endpoint in {liveness_endpoint}")
 
         # Here we set the scoping for the operator
         # We will either check for Secrets and Configmaps in the entire cluster or a subset of namespaces
@@ -98,8 +110,10 @@ def kopf_thread(
 
         if namespace is None or namespace == 'ALL':
             clusterwide = True
+            print("Monitoring for resources in the entire cluster")
         else:
             namespaces = namespace.replace(" ", "").split(',')
+            print(f"Monitoring for resources in the {namespaces} namespace(s) only")
 
         loop.run_until_complete(kopf.operator(
             liveness_endpoint=liveness_endpoint,
@@ -113,7 +127,7 @@ def main():
     # Start the operator and let it initialise.
     method = os.getenv('METHOD', 'WATCH')
 
-    # The Grafana Helm chart guys pass an empty string for METHOD env var instead of just leaving it leaving it unset...
+    # The Grafana Helm chart guys pass an empty string for METHOD env var instead of just leaving it unset...
     if not method:
         method = 'WATCH'
 
