@@ -84,12 +84,12 @@ def kopf_thread(
 
         # Here we set the scoping for the operator
         # We will either check for Secrets and Configmaps in the entire cluster or a subset of namespaces
-        namespace = os.getenv('NAMESPACE', 'ALL')
+        namespace = os.getenv('NAMESPACE')
 
         clusterwide = None
         namespaces = []
 
-        if namespace == 'ALL':
+        if namespace is None or namespace == 'ALL':
             clusterwide = True
         else:
             namespaces = namespace.replace(" ", "").split(',')
