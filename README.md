@@ -53,6 +53,25 @@ All tags are automatically built and pushed to [Dockerhub](https://hub.docker.co
 
 ## Gotchas
 
+### Namespaces
+
+Contrary to the original k8s-sidecar, we will look in `ALL` namespaces by default as explained in the [Configuration Environment Variables](#configuration-environment-variables) section.
+
+If you only want to look for resources in the namespace where the sidecar is installed, feel free to specify it.
+
+### RBAC permissions
+
+If you're using this image with the [Grafana Helm chart](https://github.com/grafana/helm-charts/tree/main/charts/grafana) you will need to provide `patch` permissions for `configmaps` and `secrets` in the `values.yaml`
+
+```
+-  extraClusterRoleRules: []
++  extraClusterRoleRules:
++    - apiGroups: [""]  # "" indicates the core API group
++      resources: ["configmaps", "secrets"]
++      verbs: ["patch"]
+```
+This is because the operator needs to patch the resources to add finalizers, see the [Resource deletion](#resource-deletion) below.
+
 ### Resource deletion
 
 With the usage of k8s operators, we have access to [finalizers](https://kubernetes.io/docs/tasks/extend-kubernetes/custom-resources/custom-resource-definitions/#finalizers)
