@@ -46,7 +46,6 @@ All tags are automatically built and pushed to [Dockerhub](https://hub.docker.co
 | DEFAULT_FILE_MODE | No | `644` | The default file system permission for every file. Use three digits (e.g. '500', '440', ...) |
 | VERBOSE | No | `False` | A value of `true` will enable the kopf verbose logs |
 | DEBUG | No | `False` | A value of `true` will enable the kopf debug logs |
-| LIVENESS | No | `True` | A value of `false` will disable the kopf liveness probe |
 | WATCH_CLIENT_TIMEOUT | No | `660` | (seconds) is how long the session with a watching request will exist before closing it from the client side. This includes the connection establishing and event streaming. |
 | WATCH_SERVER_TIMEOUT | No | `600` | (seconds) is how long the session with a watching request will exist before closing it from the server side. This value is passed to the server side in a query string, and the server decides on how to follow it. The watch-stream is then gracefully closed. |
 | EVENT_LOGGING | No | `False` | A value of `true` will allow the operator to log directly to k8s events (`kubectl get events`).<br>Note that if you enable this, you'll need to provide the operator with RBAC access to `Event`s resources, see an example of how to do this in [rbac.yaml](examples/rbac.yaml) |
