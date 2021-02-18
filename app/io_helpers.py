@@ -20,7 +20,7 @@ def create_folder(folder, logger):
                 return
     logger.debug(f"Folder {folder} already exists. Skipping creation.")
 
-async def get_folder(metadata):
+def get_folder(metadata):
     """
     Handles the logic to determine which folder this resource needs to be written to
     and returns it.
@@ -41,7 +41,7 @@ async def get_folder(metadata):
 
     return folder
 
-async def get_filepath(filename, folder, body):
+def get_filepath(filename, folder, kind, body):
     """
     Returns unique path if UNIQUE_FILENAMES are desired.
     Otherwise, simply returns the concatenated filename with the folder.
@@ -52,42 +52,39 @@ async def get_filepath(filename, folder, body):
             namespace = body['metadata']['namespace']
 
         name = body['metadata']['name']
-        kind = body['kind'].lower()
+        kind = kind.lower()
 
         filename = namespace + "." + kind + "_" + name + "." + filename
 
     return os.path.join(folder, filename)
 
 
-async def delete_file(body, logger):
-    resource_kind = body['kind']
-
-    folder = await get_folder(body['metadata'])
+def delete_file(body, kind, logger):
+    folder = get_folder(body['metadata'])
 
     for filename in body['data'].keys():
-        filepath = await get_filepath(filename, folder, body)
-        logger.info(f"[DELETE:{resource_kind}] Deleting file {filepath}.")
+        filepath = get_filepath(filename, folder, kind, body)
+        logger.info(f"[DELETE:{kind}] Deleting file {filepath}.")
         try:
             os.remove(filepath)
         except FileNotFoundError:
-            logger.error(f"[DELETE:{resource_kind}] {filepath} not found.")
+            logger.error(f"[DELETE:{kind}] {filepath} not found.")
         except OSError as e:
             logger.error(e)
 
-async def write_file(event, body, logger):
+def write_file(event, body, kind, logger):
     """
     Write contents to the desired filepath if they have changed.
     """
-    resource_kind = body['kind']
     event = event.upper()
 
-    folder = await get_folder(body['metadata'])
+    folder = get_folder(body['metadata'])
     create_folder(folder, logger)
 
     for filename, content in body['data'].items():
-        filepath = await get_filepath(filename, folder, body)
+        filepath = get_filepath(filename, folder, kind, body)
 
-        if resource_kind == 'Secret':
+        if kind == 'Secret':
             content = get_base64_decoded(content)
 
         if os.path.exists(filepath):
@@ -99,12 +96,12 @@ async def write_file(event, body, logger):
                     sha256_hash_cur.update(byte_block)
 
             if sha256_hash_new.hexdigest() == sha256_hash_cur.hexdigest():
-                logger.info(f"[{event}:{resource_kind}] Contents of {filepath} haven't changed. Not overwriting existing file.")
+                logger.info(f"[{event}:{kind}] Contents of {filepath} haven't changed. Not overwriting existing file.")
                 continue
 
         try:
             with open(filepath, 'w') as f:
-                logger.info(f"[{event}:{resource_kind}] Writing content to file {filepath}")
+                logger.info(f"[{event}:{kind}] Writing content to file {filepath}")
                 f.write(content)
         # TODO: Flesh out IO exception handling here
         except Exception as e:

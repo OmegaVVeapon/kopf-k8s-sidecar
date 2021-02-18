@@ -25,8 +25,9 @@ spec:
           command: ["watch"]
           args: ["for file in /tmp/*; do tail -v -n +1 $file; echo; done"]
         - name: sidecar
+          imagePullPolicy: Always
           # image: kiwigrid/k8s-sidecar:latest
-          image: omegavveapon/kopf-k8s-sidecar:latest
+          image: omegavveapon/kopf-k8s-sidecar:fix-init-container
           livenessProbe:
             httpGet:
               path: /healthz
@@ -42,7 +43,9 @@ spec:
             # - name: VERBOSE
             #   value: "true"
             # - name: NAMESPACE
-            #   value: default
+            #   value: test-namespace,default
+            # - name: METHOD
+            #   value: "LIST"
             - name: LABEL
               value: "findme"
             - name: LABEL_VALUE
@@ -53,6 +56,8 @@ spec:
               value: "annotation-path"
             - name: RESOURCE
               value: both
+            # - name: LIVENESS
+            #   value: "false"
       volumes:
         - name: shared-volume
           emptyDir: {}
