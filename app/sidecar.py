@@ -2,7 +2,7 @@ import os
 import asyncio
 import threading
 import contextlib
-from misc import get_required_env_var, get_env_var_bool, get_env_var_int, log_env_vars
+from misc import *
 from io_helpers import write_file, delete_file
 from conditions import label_is_satisfied, resource_is_desired
 from list_mode import one_run
@@ -72,42 +72,24 @@ def kopf_thread(
             verbose=get_env_var_bool("VERBOSE")
         )
 
-        liveness_endpoint = None
-
-        if os.getenv("LIVENESS") == 'false':
-            print("Liveness /healthz endpoint has been explicitely disabled!")
-        else:
-            liveness_endpoint = "http://0.0.0.0:8080/healthz"
-            print(f"Exposing liveness endpoint in {liveness_endpoint}")
-
         # Here we set the scoping for the operator
-        # We will either check for Secrets and Configmaps in the entire cluster or a subset of namespaces
-        namespace = os.getenv('NAMESPACE')
+        # This tells us if we need to check for Secrets and Configmaps in the entire cluster or a subset of namespaces
+        scope = get_scope()
 
-        clusterwide = None
-        namespaces = []
-
-        if namespace is None or namespace == 'ALL':
-            clusterwide = True
-            print("Monitoring for resources in the entire cluster")
-        else:
-            namespaces = namespace.replace(" ", "").split(',')
-            print(f"Monitoring for resources in the {namespaces} namespace(s) only")
+        # The Grafana Helm chart doesn't even use liveness probes for the sidecar... worth enabling?
+        # liveness_endpoint = "http://0.0.0.0:8080/healthz"
 
         loop.run_until_complete(kopf.operator(
-            liveness_endpoint=liveness_endpoint,
-            clusterwide=clusterwide,
-            namespaces=namespaces,
+            liveness_endpoint=None,
+            clusterwide=scope['clusterwide'],
+            namespaces=scope['namespaces'],
             ready_flag=ready_flag,
             stop_flag=stop_flag,
         ))
 
 def main():
-    method = os.getenv('METHOD', 'WATCH')
 
-    # The Grafana Helm chart guys pass an empty string for METHOD env var instead of just leaving it unset so os.getenv doesn't work correctly...
-    if not method:
-        method = 'WATCH'
+    method = get_method()
 
     if method == 'WATCH':
         ready_flag = threading.Event()
@@ -121,7 +103,7 @@ def main():
     elif method == 'LIST':
         one_run()
     else:
-        print(f"METHOD {method} is not supported! Valid METHODs are 'WATCH' or 'LIST'")
+        raise Exception(f"METHOD {method} is not supported! Valid METHODs are 'WATCH' or 'LIST'")
 
 if __name__ == '__main__':
     main()

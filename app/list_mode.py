@@ -2,7 +2,7 @@ import os
 import pykube
 from io_helpers import write_file
 from conditions import label_is_satisfied
-from misc import log_env_vars
+from misc import log_env_vars, get_scope
 import logging
 
 def _get_configmaps(namespace):
@@ -37,25 +37,19 @@ def one_run():
     # Log some useful variables for troubleshooting
     log_env_vars(logger)
 
-    # Get the user-defined namespace(s), if not specified (or if "ALL"), look in all of them
-    namespaces = os.getenv("NAMESPACE")
-
-    if namespaces is None or namespaces == "ALL":
-        namespaces = [pykube.all]
-    else:
-        namespaces = namespaces.replace(" ", "").split(',')
+    scope = get_scope()
 
     resource = os.getenv('RESOURCE', 'configmap')
 
     if resource in ('configmap', 'both'):
-        for namespace in namespaces:
+        for namespace in scope['namespaces']:
             configmaps = _get_configmaps(namespace)
             for configmap in configmaps:
                 if label_is_satisfied(configmap.obj['metadata']):
                     write_file("create", configmap.obj, configmap.kind, logger)
 
     if resource in ('secret', 'both'):
-        for namespace in namespaces:
+        for namespace in scope['namespaces']:
             secrets = _get_secrets(namespace)
             for secret in secrets:
                 if label_is_satisfied(secret.obj['metadata']):
