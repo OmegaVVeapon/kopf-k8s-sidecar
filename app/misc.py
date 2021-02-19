@@ -69,6 +69,12 @@ def log_env_vars(logger):
     folder = get_required_env_var('FOLDER')
     logger.info(f"The default FOLDER to write files to is {folder}")
 
+    folder_annotation = os.getenv('FOLDER_ANNOTATION')
+    if not folder_annotation:
+        logger.info("FOLDER_ANNOTATION not set. Defaulting to look for 'k8s-sidecar-target-directory'")
+    else:
+        logger.info(f"FOLDER_ANNOTATION that we will look for to override the destination folder is '{folder_annotation}'")
+
     label = get_required_env_var('LABEL')
     label_value = os.getenv('LABEL_VALUE')
     if label_value:
