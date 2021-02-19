@@ -32,6 +32,28 @@ Similarly, you can view the `bash` container logs to see how the files defined b
 
 All tags are automatically built and pushed to [Dockerhub](https://hub.docker.com/r/omegavveapon/kopf-k8s-sidecar).
 
+## Grafana Helm Chart users
+
+If you are looking to use this image with the [Grafana Helm chart](https://github.com/grafana/helm-charts/tree/main/charts/grafana), then this is the section for you.
+
+### Sidecar image
+
+* Set `.Values.sidecar.image.repository` to `omegavveapon/kopf-k8s-sidecar` 
+* Set `.Values.sidecar.image.tag` to the latest tag in [Releases](https://github.com/OmegaVVeapon/kopf-k8s-sidecar/releases)
+
+### RBAC permissions
+
+Provide `patch` permissions for `configmaps` and `secrets` in the `values.yaml`
+
+```
+-  extraClusterRoleRules: []
++  extraClusterRoleRules:
++    - apiGroups: [""]  # "" indicates the core API group
++      resources: ["configmaps", "secrets"]
++      verbs: ["patch"]
+```
+This is because the operator needs to `patch` the resources to add finalizers, see the [Resource deletion](#resource-deletion) section to learn more.
+
 ## Configuration Environment Variables
 
 | Variable | Required? | Default | Description |
@@ -55,22 +77,9 @@ All tags are automatically built and pushed to [Dockerhub](https://hub.docker.co
 
 ### Namespaces
 
-Contrary to the original k8s-sidecar, we will look in `ALL` namespaces by default as explained in the [Configuration Environment Variables](#configuration-environment-variables) section.
+Contrary to the original k8s-sidecar, we will look in `ALL` namespaces by default as documented in the [Configuration Environment Variables](#configuration-environment-variables) section.
 
 If you only want to look for resources in the namespace where the sidecar is installed, feel free to specify it.
-
-### RBAC permissions
-
-If you're using this image with the [Grafana Helm chart](https://github.com/grafana/helm-charts/tree/main/charts/grafana) you will need to provide `patch` permissions for `configmaps` and `secrets` in the `values.yaml`
-
-```
--  extraClusterRoleRules: []
-+  extraClusterRoleRules:
-+    - apiGroups: [""]  # "" indicates the core API group
-+      resources: ["configmaps", "secrets"]
-+      verbs: ["patch"]
-```
-This is because the operator needs to patch the resources to add finalizers, see the [Resource deletion](#resource-deletion) below.
 
 ### Resource deletion
 
@@ -78,10 +87,14 @@ With the usage of k8s operators, we have access to [finalizers](https://kubernet
 
 Finalizers allow controllers (which operators are a subset of) to perform given actions on a resource before it is garbage collected by Kubernetes.
 
-Since we want `kopf-k8s-sidecar` to delete previously created files when a resource is removed, finalizers are added to ensure this task is performed by the operator.
+In our case, that action is to remove previously created files when a `ConfigMap` or `Secret` is deleted.
+
+Finalizers are added to ensure this task is performed by the operator.
+
+Therefore...
 
 **If the operator is down, resources managed by it won't be able to be deleted.**
 
 To resolve this, simply restart the operator container or patch the finalizers out of the resource that you want to forcibly remove.
 
-This is documented by [kopf](https://kopf.readthedocs.io/en/latest/troubleshooting/#kubectl-freezes-on-object-deletion) as well.
+This is documented by the [kopf](https://kopf.readthedocs.io/en/latest/troubleshooting/#kubectl-freezes-on-object-deletion) framework as well.
