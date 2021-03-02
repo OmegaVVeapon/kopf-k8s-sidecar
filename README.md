@@ -46,6 +46,7 @@ If you are looking to use this image with the [Grafana Helm chart](https://githu
 Provide `patch` permissions for `configmaps` and `secrets` in the `values.yaml`
 
 ```
+rbac:
 -  extraClusterRoleRules: []
 +  extraClusterRoleRules:
 +    - apiGroups: [""]  # "" indicates the core API group
