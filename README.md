@@ -64,7 +64,7 @@ This is because the operator needs to `patch` the resources to add finalizers, s
 | FOLDER_ANNOTATION | No | `k8s-sidecar-target-directory` | The annotation the sidecar will look for in `ConfigMap`s and/or `Secret`s to override the destination folder for files |
 | LABEL_VALUE | No | `None` | The value for the label you want to filter your resources on.<br>Don't set a value to filter by any value |
 | NAMESPACE | No | `ALL` | The `Namespace`(s) from which resources will be watched. <br>For multiple namespaces, use a comma-separated string like "default,test".<br>If not set or set to `ALL`, it will watch all `Namespace`s. |
-| RESOURCE | No | `configmap` | The resource type that the operator will filter for. Can be `ConfigMap`, `Secret` or `both` |
+| RESOURCE | No | `configmap` | The resource type that the operator will filter for. Can be `configmap`, `secret` or `both` |
 | METHOD | No | `WATCH` | Determines how kopf-k8s-sidecar will run. If `WATCH` it will run like like a normal operator **forever**. <br>If `LIST` it will gather the matching configmaps and secrets currently present, write those files to the destination directory and **die** |
 | DEFAULT_FILE_MODE | No | `644` | The default file system permission for every file. Use three digits (e.g. '500', '440', ...) |
 | VERBOSE | No | `False` | A value of `true` will enable the kopf verbose logs |
