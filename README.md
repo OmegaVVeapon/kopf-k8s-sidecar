@@ -53,7 +53,7 @@ rbac:
 +      resources: ["configmaps", "secrets"]
 +      verbs: ["patch"]
 ```
-This is because the operator needs to `patch` the resources to add finalizers, see the [Resource deletion](#resource-deletion) section to learn more.
+The operator needs to `patch` resources to add a `kopf.zalando.org/last-handled-configuration` annotation which is used to handle [change detection](https://kopf.readthedocs.io/en/stable/configuration/?highlight=last-handled-configuration#change-detection).
 
 ## Configuration Environment Variables
 
@@ -81,21 +81,3 @@ This is because the operator needs to `patch` the resources to add finalizers, s
 Contrary to the original k8s-sidecar, we will look in `ALL` namespaces by default as documented in the [Configuration Environment Variables](#configuration-environment-variables) section.
 
 If you only want to look for resources in the namespace where the sidecar is installed, feel free to specify it.
-
-### Resource deletion
-
-With the usage of k8s operators, we have access to [finalizers](https://kubernetes.io/docs/tasks/extend-kubernetes/custom-resources/custom-resource-definitions/#finalizers)
-
-Finalizers allow controllers (which operators are a subset of) to perform given actions on a resource before it is garbage collected by Kubernetes.
-
-In our case, that action is to remove previously created files when a `ConfigMap` or `Secret` is deleted.
-
-Finalizers are added to ensure this task is performed by the operator.
-
-Therefore...
-
-**If the operator is down, resources managed by it won't be able to be deleted.**
-
-To resolve this, simply restart the operator container or patch the finalizers out of the resource that you want to forcibly remove.
-
-This is documented by the [kopf](https://kopf.readthedocs.io/en/latest/troubleshooting/#kubectl-freezes-on-object-deletion) framework as well.
