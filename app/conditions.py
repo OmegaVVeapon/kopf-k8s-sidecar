@@ -28,3 +28,7 @@ def resource_is_desired(body, **_):
     kind = body['kind'].lower()
 
     return resource in (kind, 'both')
+
+def resource_is_deleted(event, **_):
+    """Returns true if the resource was deleted in the on.event handler"""
+    return event['type'] == 'DELETED'
