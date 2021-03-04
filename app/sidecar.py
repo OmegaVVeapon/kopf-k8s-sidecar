@@ -4,7 +4,7 @@ import threading
 import contextlib
 from misc import *
 from io_helpers import write_file, delete_file
-from conditions import label_is_satisfied, resource_is_desired
+from conditions import label_is_satisfied, resource_is_desired, resource_is_deleted
 from list_mode import one_run
 import kopf
 
@@ -52,8 +52,8 @@ def startup_tasks(settings: kopf.OperatorSettings, logger, **_):
 def cru_fn(body, reason, logger, **_):
     write_file(reason, body, body['kind'], logger)
 
-@kopf.on.delete('', 'v1', 'configmaps', when=kopf.all_([label_is_satisfied, resource_is_desired]))
-@kopf.on.delete('', 'v1', 'secrets', when=kopf.all_([label_is_satisfied, resource_is_desired]))
+@kopf.on.event('', 'v1', 'configmaps', when=kopf.all_([label_is_satisfied, resource_is_desired, resource_is_deleted]))
+@kopf.on.event('', 'v1', 'secrets', when=kopf.all_([label_is_satisfied, resource_is_desired, resource_is_deleted]))
 def delete_fn(body, logger, **_):
     delete_file(body, body['kind'], logger)
 
