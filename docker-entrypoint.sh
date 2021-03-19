@@ -1,9 +1,7 @@
-#!/bin/bash
+#!/bin/sh
 set -e
 
 if [ "$1" = 'kopf-k8s-sidecar' ]; then
-
-    command=("python" "sidecar.py")
 
     # command=("kopf" "run" "sidecar.py")
     # [[ "$VERBOSE" = "true" ]] && command+=("--verbose")
@@ -14,11 +12,11 @@ if [ "$1" = 'kopf-k8s-sidecar' ]; then
 
     # Fix https://github.com/OmegaVVeapon/kopf-k8s-sidecar/issues/12 by setting the USER env var to prevent python from looking for a matching uid/gid in the password database.
     # See https://github.com/python/cpython/blob/v3.6.0/Lib/getpass.py#L155-L170.
-    USER=$(id --user)
+    USER=$(id -u)
     echo "Setting USER environment variable to ${USER}"
     export USER=$USER
 
-    exec "${command[@]}"
+    exec python sidecar.py
 fi
 
 exec "$@"
