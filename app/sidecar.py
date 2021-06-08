@@ -2,6 +2,7 @@ import os
 import asyncio
 import threading
 import contextlib
+import sidecar_settings
 from misc import *
 from io_helpers import write_file, delete_file
 from conditions import label_is_satisfied, resource_is_desired, resource_is_deleted
@@ -13,35 +14,15 @@ def startup_tasks(settings: kopf.OperatorSettings, logger, **_):
     """Perform all necessary startup tasks here. Keep them lightweight and relevant
     as the other handlers won't be initialized until these tasks are complete"""
 
-    # Log some useful variables for troubleshooting
-    log_env_vars(logger)
-
-    # Replace the default marker with something less cryptic
-    settings.persistence.finalizer = 'kopf.zalando.org/K8sSidecarFinalizerMarker'
-
-    # Set the client and service k8s API timeouts
-    # Very important! Without proper values, the operator may stop responding!
-    # See https://github.com/nolar/kopf/issues/585
-    client_timeout = get_env_var_int('WATCH_CLIENT_TIMEOUT', 660, logger)
-    server_timeout = get_env_var_int('WATCH_SERVER_TIMEOUT', 600, logger)
-
     # Running the operator as a standalone
     # https://kopf.readthedocs.io/en/stable/peering/?highlight=standalone#standalone-mode
     settings.peering.standalone = True
 
-    logger.info(f"Client watching requests using a timeout of {client_timeout} seconds")
-    settings.watching.client_timeout = client_timeout
+    settings.watching.client_timeout = sidecar_settings.WATCH_CLIENT_TIMEOUT
+    settings.watching.server_timeout = sidecar_settings.WATCH_SERVER_TIMEOUT
 
-    logger.info(f"Server watching requests using a timeout of {server_timeout} seconds")
-    settings.watching.server_timeout = server_timeout
-
-    # The client timeout shouldn't be shorter than the server timeout
-    # https://kopf.readthedocs.io/en/latest/configuration/#api-timeouts
-    if client_timeout < server_timeout:
-        logger.warning(f"The client timeout ({client_timeout}) is shorter than the server timeout ({server_timeout}). Consider increasing the client timeout to be higher")
-
-    # Set k8s event logging
-    settings.posting.enabled = get_env_var_bool('EVENT_LOGGING')
+    # Disable k8s event logging
+    settings.posting.enabled = False
 
 @kopf.on.resume('', 'v1', 'configmaps', when=kopf.all_([label_is_satisfied, resource_is_desired]))
 @kopf.on.create('', 'v1', 'configmaps', when=kopf.all_([label_is_satisfied, resource_is_desired]))
@@ -68,30 +49,31 @@ def kopf_thread(
         # Since we're using an embedded operator we can't rely on CLI options to configure the logger
         # we have to do it here, before we start the operator
         kopf.configure(
-            debug=get_env_var_bool("DEBUG"),
-            verbose=get_env_var_bool("VERBOSE")
+            debug=sidecar_settings.DEBUG,
+            verbose=sidecar_settings.VERBOSE
         )
-
-        # Here we set the scoping for the operator
-        # This tells us if we need to check for Secrets and Configmaps in the entire cluster or a subset of namespaces
-        scope = get_scope()
 
         # The Grafana Helm chart doesn't even use liveness probes for the sidecar... worth enabling?
         # liveness_endpoint = "http://0.0.0.0:8080/healthz"
 
-        loop.run_until_complete(kopf.operator(
-            liveness_endpoint=None,
-            clusterwide=scope['clusterwide'],
-            namespaces=scope['namespaces'],
-            ready_flag=ready_flag,
-            stop_flag=stop_flag,
-        ))
+        opts = {
+            "liveness_endpoint": None,
+            "clusterwide": False,
+            "namespaces": [],
+            "ready_flag": ready_flag,
+            "stop_flag": stop_flag
+        }
+
+        if sidecar_settings.NAMESPACE == 'ALL':
+            opts['clusterwide'] = True
+        else:
+            opts['namespaces'] = sidecar_settings.NAMESPACE
+
+        loop.run_until_complete(kopf.operator(**opts))
 
 def main():
 
-    method = get_method()
-
-    if method == 'WATCH':
+    if sidecar_settings.METHOD == 'WATCH':
         ready_flag = threading.Event()
         stop_flag = threading.Event()
         thread = threading.Thread(target=kopf_thread, kwargs=dict(
@@ -100,10 +82,10 @@ def main():
         ))
         thread.start()
         ready_flag.wait()
-    elif method == 'LIST':
+    elif sidecar_settings.METHOD == 'LIST':
         one_run()
     else:
-        raise Exception(f"METHOD {method} is not supported! Valid METHODs are 'WATCH' or 'LIST'")
+        raise Exception(f"METHOD {sidecar_settings.METHOD} is not supported! Valid METHODs are 'WATCH' or 'LIST'")
 
 if __name__ == '__main__':
     main()

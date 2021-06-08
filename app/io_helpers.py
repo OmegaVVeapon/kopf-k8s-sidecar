@@ -1,6 +1,7 @@
 import os
 import errno
 import hashlib
+import sidecar_settings
 from misc import get_env_var_bool, get_base64_decoded
 
 def create_folder(folder, logger):
@@ -26,7 +27,7 @@ def get_folder(metadata):
     and returns it.
     It takes into account the FOLDER, FOLDER_ANNOTATION and the resource's annotations
     """
-    folder = os.environ['FOLDER']
+    folder = sidecar_settings.FOLDER
 
     # If there's no annotations, just return the original FOLDER immediately
     if 'annotations' not in metadata:
@@ -34,7 +35,7 @@ def get_folder(metadata):
 
     annotations = metadata['annotations']
 
-    folder_annotation = os.getenv('FOLDER_ANNOTATION', 'k8s-sidecar-target-directory')
+    folder_annotation = sidecar_settings.FOLDER_ANNOTATION
 
     if folder_annotation in annotations:
         folder = annotations[folder_annotation]
@@ -46,7 +47,7 @@ def get_filepath(filename, folder, kind, body):
     Returns unique path if UNIQUE_FILENAMES are desired.
     Otherwise, simply returns the concatenated filename with the folder.
     """
-    if get_env_var_bool('UNIQUE_FILENAMES'):
+    if sidecar_settings.UNIQUE_FILENAMES:
         namespace = 'default'
         if 'namespace' in body['metadata']:
             namespace = body['metadata']['namespace']
@@ -78,7 +79,8 @@ def write_file(event, body, kind, logger):
     """
     event = event.upper()
 
-    folder = get_folder(body['metadata'])
+    #  folder = get_folder(body['metadata'])
+    folder = get_folder(body.metadata)
     create_folder(folder, logger)
 
     for filename, content in body['data'].items():
@@ -107,6 +109,5 @@ def write_file(event, body, kind, logger):
         except Exception as e:
             logger.error(e)
 
-        if os.getenv('DEFAULT_FILE_MODE'):
-            mode = int(os.getenv('DEFAULT_FILE_MODE'), base=8)
-            os.chmod(filepath, mode)
+        if sidecar_settings.DEFAULT_FILE_MODE:
+            os.chmod(filepath, sidecar_settings.DEFAULT_FILE_MODE)
