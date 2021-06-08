@@ -5,10 +5,10 @@ name = "pypi"
 
 [packages]
 kopf = "==1.32.1"
-pykube-ng = "==20.10.0"
+kubernetes = "*"
 
 [dev-packages]
-kubernetes = "*"
+configargparse = "*"
 
 [requires]
 python_version = "3.8"
