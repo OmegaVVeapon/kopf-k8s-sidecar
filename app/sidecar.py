@@ -48,10 +48,10 @@ def kopf_thread(
 
         # Since we're using an embedded operator we can't rely on CLI options to configure the logger
         # we have to do it here, before we start the operator
-        kopf.configure(
-            debug=sidecar_settings.DEBUG,
-            verbose=sidecar_settings.VERBOSE
-        )
+        #  kopf.configure(
+        #      debug=sidecar_settings.DEBUG,
+        #      verbose=sidecar_settings.VERBOSE
+        #  )
 
         # The Grafana Helm chart doesn't even use liveness probes for the sidecar... worth enabling?
         # liveness_endpoint = "http://0.0.0.0:8080/healthz"

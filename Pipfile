@@ -5,7 +5,7 @@ name = "pypi"
 
 [packages]
 kopf = "==1.32.1"
-kubernetes = "*"
+pykube-ng = "*"
 
 [dev-packages]
 configargparse = "*"

@@ -79,8 +79,7 @@ def write_file(event, body, kind, logger):
     """
     event = event.upper()
 
-    #  folder = get_folder(body['metadata'])
-    folder = get_folder(body.metadata)
+    folder = get_folder(body['metadata'])
     create_folder(folder, logger)
 
     for filename, content in body['data'].items():
