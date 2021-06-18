@@ -10,16 +10,16 @@ def create_folder(folder, logger):
     permissions to create the directory, log an error and return.
     """
     if not os.path.exists(folder):
-        logger.debug(f"Creating folder {folder}")
+        logger.info("Creating folder %s", folder)
         try:
             os.makedirs(folder)
         except OSError as e:
             if e.errno not in (errno.EACCES, errno.EEXIST):
                 raise
             if e.errno == errno.EACCES:
-                logger.error(f"Insufficient privileges to create folder {folder}.")
+                logger.error("Insufficient privileges to create folder %s.", folder)
                 return
-    logger.debug(f"Folder {folder} already exists. Skipping creation.")
+    logger.debug("Folder %s already exists. Skipping creation.", folder)
 
 def get_folder(metadata):
     """
@@ -65,11 +65,11 @@ def delete_file(body, kind, logger):
 
     for filename in body['data'].keys():
         filepath = get_filepath(filename, folder, kind, body)
-        logger.info(f"[DELETE:{kind}] Deleting file {filepath}.")
+        logger.info("[DELETE:%s] Deleting file %s.", kind, filepath)
         try:
             os.remove(filepath)
         except FileNotFoundError:
-            logger.error(f"[DELETE:{kind}] {filepath} not found.")
+            logger.error("[DELETE:%s] %s not found.", kind, filepath)
         except OSError as e:
             logger.error(e)
 
@@ -97,16 +97,16 @@ def write_file(event, body, kind, logger):
                     sha256_hash_cur.update(byte_block)
 
             if sha256_hash_new.hexdigest() == sha256_hash_cur.hexdigest():
-                logger.info(f"[{event}:{kind}] Contents of {filepath} haven't changed. Not overwriting existing file.")
+                logger.info(f"[%s:%s] Contents of %s haven't changed. Not overwriting existing file.", event, kind, filepath)
                 continue
 
         try:
             with open(filepath, 'w') as f:
-                logger.info(f"[{event}:{kind}] Writing content to file {filepath}")
+                logger.info("[%s:%s] Writing content to file %s", event, kind, filepath)
                 f.write(content)
         # TODO: Flesh out IO exception handling here
         except Exception as e:
-            logger.error(e)
+            logger.exception("Failed to write file %s", filepath)
 
         if sidecar_settings.DEFAULT_FILE_MODE:
             os.chmod(filepath, sidecar_settings.DEFAULT_FILE_MODE)
