@@ -35,10 +35,8 @@ def get_folder(metadata):
 
     annotations = metadata['annotations']
 
-    folder_annotation = sidecar_settings.FOLDER_ANNOTATION
-
-    if folder_annotation in annotations:
-        folder = annotations[folder_annotation]
+    if sidecar_settings.FOLDER_ANNOTATION in annotations:
+        folder = annotations[sidecar_settings.FOLDER_ANNOTATION]
 
     return folder
 
