@@ -1,5 +1,7 @@
 import logging
 import pykube
+from requests.exceptions import HTTPError
+from urllib3.exceptions import ProtocolError
 from io_helpers import write_file
 from tenacity import retry, stop_after_attempt, wait_fixed
 import sidecar_settings
@@ -16,42 +18,55 @@ def show_attempts_and_sleep_time(retry_state):
     wait=wait_fixed(2),
     before_sleep=show_attempts_and_sleep_time
 )
-def _get_configmaps(namespace, label):
+def write_configmaps(namespace, label):
     try:
         api = pykube.HTTPClient(pykube.KubeConfig.from_env())
+        # This returns a Query object (https://codeberg.org/hjacobs/pykube-ng/src/branch/main/pykube/query.py)
+        # Accessing its __len__ or __iter__ methods as done below will call the k8s API and thus, has the potential to fail
         configmaps = pykube.ConfigMap.objects(api).filter(
             namespace=namespace,
             selector=label
         )
-    except pykube.exceptions.HTTPError as pykube_http_error:
+
+        if not configmaps:
+            logger.info("No configmaps found with label %s", label)
+            return
+
+        for configmap in configmaps:
+            write_file("create", configmap.obj, configmap.kind, logger)
+    except (HTTPError, ProtocolError) as api_error:
         logger.exception("The connection to the Kubernetes API server has failed!")
-        raise pykube_http_error
+        raise api_error
     except Exception:
-        logger.exception("Unexpected non-HTTP exception...")
+        logger.exception("Unexpected exception...")
         raise
-    else:
-        return configmaps
 
 @retry(
     stop=stop_after_attempt(5),
     wait=wait_fixed(2),
     before_sleep=show_attempts_and_sleep_time
 )
-def _get_secrets(namespace, label):
+def write_secrets(namespace, label):
     try:
         api = pykube.HTTPClient(pykube.KubeConfig.from_env())
+        # This returns a Query object (https://codeberg.org/hjacobs/pykube-ng/src/branch/main/pykube/query.py)
+        # Accessing its __len__ or __iter__ methods as done below will call the k8s API and thus, has the potential to fail
         secrets = pykube.Secret.objects(api).filter(
             namespace=namespace,
             selector=label
         )
-    except pykube.exceptions.HTTPError as pykube_http_error:
+        if not secrets:
+            logger.info("No secrets found with label %s", label)
+            return
+
+        for secret in secrets:
+            write_file("create", secret.obj, secret.kind, logger)
+    except (HTTPError, ProtocolError) as api_error:
         logger.exception("The connection to the Kubernetes API server has failed!")
-        raise pykube_http_error
+        raise api_error
     except Exception:
-        logger.exception("Unexpected non-HTTP exception...")
+        logger.exception("Unexpected exception...")
         raise
-    else:
-        return secrets
 
 def one_run():
     """Search through all the ConfigMaps and Secrets in the specified namespaces. If they meet the label requirements,
@@ -74,13 +89,7 @@ def one_run():
             if namespace != pykube.all:
                 logger.info("Searching in namespace %s", namespace)
 
-            configmaps = _get_configmaps(namespace, label)
-
-            if not configmaps:
-                logger.info("No configmaps found with label %s", label)
-
-            for configmap in configmaps:
-                write_file("create", configmap.obj, configmap.kind, logger)
+            write_configmaps(namespace, label)
 
     if sidecar_settings.RESOURCE in ('secret', 'both'):
         logger.info("Looking for secrets...")
@@ -89,15 +98,6 @@ def one_run():
             if namespace != pykube.all:
                 logger.info("Searching in namespace %s", namespace)
 
-            secrets = _get_secrets(namespace, label)
-
-            if not secrets:
-                logger.info("No secrets found with label %s", label)
-
-            for secret in secrets:
-                write_file("create", secret.obj, secret.kind, logger)
-
-    if not configmaps and not secrets:
-        logger.warning("Could not find configmaps OR secrets matching label %s. Was this intended?", label)
+            write_secrets(namespace, label)
 
     logger.info("LIST mode completed. Exiting...")
