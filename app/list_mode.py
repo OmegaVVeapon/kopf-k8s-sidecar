@@ -71,6 +71,9 @@ def one_run():
         logger.info("Looking for configmaps...")
 
         for namespace in namespaces:
+            if namespace != pykube.all:
+                logger.info("Searching in namespace %s", namespace)
+
             configmaps = _get_configmaps(namespace, label)
 
             if not configmaps:
@@ -83,6 +86,9 @@ def one_run():
         logger.info("Looking for secrets...")
 
         for namespace in namespaces:
+            if namespace != pykube.all:
+                logger.info("Searching in namespace %s", namespace)
+
             secrets = _get_secrets(namespace, label)
 
             if not secrets:
