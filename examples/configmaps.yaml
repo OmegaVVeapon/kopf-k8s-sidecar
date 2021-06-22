@@ -47,6 +47,7 @@ data:
 apiVersion: v1
 kind: ConfigMap
 metadata:
+  namespace: test-namespace
   name: fake-datasource-2
   labels:
     fake-datasource: "yea"
