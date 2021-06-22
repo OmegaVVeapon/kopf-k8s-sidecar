@@ -3,45 +3,53 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   namespace: test-namespace
-  name: sample-configmap
+  name: fake-dashboard
   labels:
-    findme: "yea"
+    fake-dashboard: "yea"
 data:
-  test-first-file: |-
-     Hello World in test namespace. This is the first file.
-  test-second-file: |-
-     Hello World in test namespace. This is the second file.
+  test-first-dashboard: |-
+     This is the first dashboard in the test-namespace
+  test-second-dashboard: |-
+     This is the second dashboard in the test-namespace
 ---
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: sample-configmap-different-folder
+  name: fake-dashboard-2
+  labels:
+    fake-dashboard: "yea"
+data:
+  default-dashboard: |-
+     This is a dashboard in the default namespace
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: fake-dashboard-folder-annotation
   annotations:
     annotation-path: "/tmp/bar/foo"
   labels:
-    findme: "yea"
+    fake-dashboard: "yea"
 data:
   default-annotation: |-
-     This file should be in /tmp/bar/foo
+     This dashboard should be in /tmp/bar/foo
 ---
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: sample-configmap
+  name: fake-datasource-1
   labels:
-    findme: "yea"
+    fake-datasource: "yea"
 data:
-  default-file: |-
-     Hello World in default namespace.
+  default-datasource-1: |-
+     This is a datasource in the default namespace
 ---
-# apiVersion: v1
-# kind: ConfigMap
-# metadata:
-#   name: sample-configmap-from-url
-#   namespace: prometheus-operator
-#   labels:
-#     findme: "yea"
-# data:
-#   # fetch https://raw.githubusercontent.com/kubernetes/ingress-nginx/master/deploy/grafana/dashboards/nginx.json with the grafana sidecar
-#   # .url will be stripped and the file will be called nginx-ingress.json
-#   nginx-ingress.json.url: https://raw.githubusercontent.com/kubernetes/ingress-nginx/master/deploy/grafana/dashboards/nginx.json
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: fake-datasource-2
+  labels:
+    fake-datasource: "yea"
+data:
+  default-datasource-2: |-
+     This is a datasource in the test-namespace
