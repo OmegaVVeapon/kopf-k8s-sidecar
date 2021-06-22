@@ -6,6 +6,7 @@ name = "pypi"
 [packages]
 kopf = "==1.32.1"
 pykube-ng = "*"
+tenacity = "*"
 
 [dev-packages]
 configargparse = "*"
