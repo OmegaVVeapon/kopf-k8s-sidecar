@@ -1,6 +1,4 @@
 import os
-import sys
-import base64
 import logging
 
 logger = logging.getLogger(__name__)
@@ -25,7 +23,3 @@ def get_env_var_int(name, default):
     except TypeError:
         logger.warning("""Expected an integer value for %s and got %s.
 Using default %s instead""", name, env_var, default)
-
-def get_base64_decoded(content):
-    """Returns the base64-decoded content"""
-    return base64.b64decode(content).decode()

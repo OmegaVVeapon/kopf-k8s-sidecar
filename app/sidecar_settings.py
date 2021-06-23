@@ -1,10 +1,18 @@
-#  import logging
-from misc import *
+import kopf
+import logging
+import os
+from env_vars import get_required_env_var, get_env_var_bool, get_env_var_int
+
+# Here we use Kopf's logging macro to setup the logging format and level for all modules
+DEBUG = get_env_var_bool("DEBUG")
+kopf.configure(
+    debug=DEBUG
+)
 
 logger = logging.getLogger(__name__)
 
-# TODO: Set the log level from the env variable 
-logging.basicConfig(format='[%(asctime)s] %(name)-30.30s %(funcName)-16.16s [%(levelname)-8.8s] %(message)s', level=logging.INFO)
+if DEBUG:
+    logger.info("DEBUG mode is activated!")
 
 LABEL = get_required_env_var('LABEL')
 LABEL_VALUE = os.getenv('LABEL_VALUE')
@@ -47,13 +55,6 @@ if DEFAULT_FILE_MODE:
     DEFAULT_FILE_MODE = int(DEFAULT_FILE_MODE, base=8)
 logger.info("DEFAULT_FILE_MODE is %s", DEFAULT_FILE_MODE)
 
-VERBOSE = get_env_var_bool("VERBOSE")
-if VERBOSE:
-    logger.info("VERBOSE mode is activated!")
-
-DEBUG = get_env_var_bool("DEBUG")
-if DEBUG:
-    logger.info("DEBUG mode is activated!")
 
 # Set the client and service k8s API timeouts
 # Very important! Without proper values, the operator may stop responding!

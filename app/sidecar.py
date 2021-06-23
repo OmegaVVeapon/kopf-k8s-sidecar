@@ -1,9 +1,8 @@
-import os
+import logging
 import asyncio
 import threading
 import contextlib
 import sidecar_settings
-from misc import *
 from io_helpers import write_file, delete_file
 from conditions import label_is_satisfied, resource_is_desired, resource_is_deleted
 from list_mode import one_run

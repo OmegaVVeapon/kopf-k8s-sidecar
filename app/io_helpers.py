@@ -1,8 +1,12 @@
 import os
 import errno
 import hashlib
+import base64
 import sidecar_settings
-from misc import get_env_var_bool, get_base64_decoded
+
+def get_base64_decoded(content):
+    """Returns the base64-decoded content"""
+    return base64.b64decode(content).decode()
 
 def create_folder(folder, logger):
     """

@@ -67,7 +67,6 @@ The operator needs to `patch` resources to add a `kopf.zalando.org/last-handled-
 | RESOURCE | No | `configmap` | The resource type that the operator will filter for. Can be `configmap`, `secret` or `both` |
 | METHOD | No | `WATCH` | Determines how kopf-k8s-sidecar will run. If `WATCH` it will run like like a normal operator **forever**. <br>If `LIST` it will gather the matching configmaps and secrets currently present, write those files to the destination directory and **die** |
 | DEFAULT_FILE_MODE | No | `None` | The default file system permission for every file. Use three digits (e.g. '500', '440', ...) |
-| VERBOSE | No | `False` | A value of `true` will enable the kopf verbose logs |
 | DEBUG | No | `False` | A value of `true` will enable the kopf debug logs |
 | WATCH_CLIENT_TIMEOUT | No | `660` | (seconds) is how long the session with a watching request will exist before closing it from the client side. This includes the connection establishing and event streaming. |
 | WATCH_SERVER_TIMEOUT | No | `600` | (seconds) is how long the session with a watching request will exist before closing it from the server side. This value is passed to the server side in a query string, and the server decides on how to follow it. The watch-stream is then gracefully closed. |

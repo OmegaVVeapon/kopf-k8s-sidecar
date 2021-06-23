@@ -1,5 +1,4 @@
 import sidecar_settings
-from misc import get_required_env_var
 
 def label_is_satisfied(meta, **_):
     """Runs the logic for LABEL and LABEL_VALUE and tells us if we need to watch the resource"""
