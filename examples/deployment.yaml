@@ -19,7 +19,7 @@ spec:
       initContainers:
         - name: datasource-sidecar
           imagePullPolicy: Always
-          image: omegavveapon/kopf-k8s-sidecar:api-connection-robustness
+          image: omegavveapon/kopf-k8s-sidecar
           # livenessProbe:
           #   httpGet:
           #     path: /healthz
@@ -44,6 +44,8 @@ spec:
               value: /tmp/
             - name: RESOURCE
               value: both
+            - name: DEBUG
+              value: "false"
             # - name: LIVENESS
             #   value: "false"
       containers:
@@ -56,7 +58,7 @@ spec:
           args: ["for file in /tmp/*; do tail -v -n +1 $file; echo; done"]
         - name: dashboard-sidecar
           imagePullPolicy: Always
-          image: omegavveapon/kopf-k8s-sidecar:api-connection-robustness
+          image: omegavveapon/kopf-k8s-sidecar
           # livenessProbe:
           #   httpGet:
           #     path: /healthz
@@ -81,6 +83,8 @@ spec:
             #   value: "annotation-path"
             - name: RESOURCE
               value: both
+            - name: DEBUG
+              value: "false"
             # - name: LIVENESS
             #   value: "false"
       volumes:
