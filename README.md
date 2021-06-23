@@ -66,12 +66,10 @@ The operator needs to `patch` resources to add a `kopf.zalando.org/last-handled-
 | NAMESPACE | No | `ALL` | The `Namespace`(s) from which resources will be watched. <br>For multiple namespaces, use a comma-separated string like "default,test".<br>If not set or set to `ALL`, it will watch all `Namespace`s. |
 | RESOURCE | No | `configmap` | The resource type that the operator will filter for. Can be `configmap`, `secret` or `both` |
 | METHOD | No | `WATCH` | Determines how kopf-k8s-sidecar will run. If `WATCH` it will run like like a normal operator **forever**. <br>If `LIST` it will gather the matching configmaps and secrets currently present, write those files to the destination directory and **die** |
-| DEFAULT_FILE_MODE | No | `644` | The default file system permission for every file. Use three digits (e.g. '500', '440', ...) |
-| VERBOSE | No | `False` | A value of `true` will enable the kopf verbose logs |
+| DEFAULT_FILE_MODE | No | `None` | The default file system permission for every file. Use three digits (e.g. '500', '440', ...) |
 | DEBUG | No | `False` | A value of `true` will enable the kopf debug logs |
 | WATCH_CLIENT_TIMEOUT | No | `660` | (seconds) is how long the session with a watching request will exist before closing it from the client side. This includes the connection establishing and event streaming. |
 | WATCH_SERVER_TIMEOUT | No | `600` | (seconds) is how long the session with a watching request will exist before closing it from the server side. This value is passed to the server side in a query string, and the server decides on how to follow it. The watch-stream is then gracefully closed. |
-| EVENT_LOGGING | No | `False` | A value of `true` will allow the operator to log directly to k8s events (`kubectl get events`).<br>Note that if you enable this, you'll need to provide the operator with RBAC access to `Event`s resources, see an example of how to do this in [rbac.yaml](examples/rbac.yaml) |
 | UNIQUE_FILENAMES | No (but recommended!) | `False` | A value of `true` will produce unique filenames to avoid issues when duplicate data keys exist between `ConfigMap`s and/or `Secret`s within the same or multiple `Namespace`s. |
 
 ## Gotchas

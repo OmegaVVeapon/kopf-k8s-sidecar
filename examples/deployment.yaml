@@ -16,6 +16,36 @@ spec:
         app: sample
     spec:
       serviceAccountName: sample-acc
+      initContainers:
+        - name: datasource-sidecar
+          imagePullPolicy: Always
+          image: omegavveapon/kopf-k8s-sidecar:api-connection-robustness
+          # livenessProbe:
+          #   httpGet:
+          #     path: /healthz
+          #     port: 8080
+          volumeMounts:
+            - name: shared-volume
+              mountPath: /tmp/
+          env:
+            - name: UNIQUE_FILENAMES
+              value: "false"
+            # - name: NAMESPACE
+            #   value: test-namespace,default
+            - name: METHOD
+              value: "LIST"
+            - name: FOLDER_ANNOTATION
+              value: "annotation-path"
+            - name: LABEL
+              value: "fake-datasource"
+            - name: LABEL_VALUE
+              value: "yea"
+            - name: FOLDER
+              value: /tmp/
+            - name: RESOURCE
+              value: both
+            # - name: LIVENESS
+            #   value: "false"
       containers:
         - name: bash
           image: bash:4.4.19
@@ -24,36 +54,31 @@ spec:
               mountPath: /tmp/
           command: ["watch"]
           args: ["for file in /tmp/*; do tail -v -n +1 $file; echo; done"]
-        - name: sidecar
+        - name: dashboard-sidecar
           imagePullPolicy: Always
-          # image: kiwigrid/k8s-sidecar:latest
-          image: omegavveapon/kopf-k8s-sidecar:fix-init-container
-          livenessProbe:
-            httpGet:
-              path: /healthz
-              port: 8080
+          image: omegavveapon/kopf-k8s-sidecar:api-connection-robustness
+          # livenessProbe:
+          #   httpGet:
+          #     path: /healthz
+          #     port: 8080
           volumeMounts:
             - name: shared-volume
               mountPath: /tmp/
           env:
             - name: UNIQUE_FILENAMES
               value: "true"
-            # - name: DEBUG
-            #   value: "true"
-            # - name: VERBOSE
-            #   value: "true"
             # - name: NAMESPACE
             #   value: test-namespace,default
             # - name: METHOD
             #   value: "LIST"
             - name: LABEL
-              value: "findme"
+              value: "fake-dashboard"
             - name: LABEL_VALUE
               value: "yea"
             - name: FOLDER
               value: /tmp/
-            - name: FOLDER_ANNOTATION
-              value: "annotation-path"
+            # - name: FOLDER_ANNOTATION
+            #   value: "annotation-path"
             - name: RESOURCE
               value: both
             # - name: LIVENESS

@@ -1,7 +1,12 @@
 import os
 import errno
 import hashlib
-from misc import get_env_var_bool, get_base64_decoded
+import base64
+import sidecar_settings
+
+def get_base64_decoded(content):
+    """Returns the base64-decoded content"""
+    return base64.b64decode(content).decode()
 
 def create_folder(folder, logger):
     """
@@ -9,16 +14,16 @@ def create_folder(folder, logger):
     permissions to create the directory, log an error and return.
     """
     if not os.path.exists(folder):
-        logger.debug(f"Creating folder {folder}")
+        logger.info("Creating folder %s", folder)
         try:
             os.makedirs(folder)
         except OSError as e:
             if e.errno not in (errno.EACCES, errno.EEXIST):
                 raise
             if e.errno == errno.EACCES:
-                logger.error(f"Insufficient privileges to create folder {folder}.")
+                logger.error("Insufficient privileges to create folder %s.", folder)
                 return
-    logger.debug(f"Folder {folder} already exists. Skipping creation.")
+    logger.debug("Folder %s already exists. Skipping creation.", folder)
 
 def get_folder(metadata):
     """
@@ -26,7 +31,7 @@ def get_folder(metadata):
     and returns it.
     It takes into account the FOLDER, FOLDER_ANNOTATION and the resource's annotations
     """
-    folder = os.environ['FOLDER']
+    folder = sidecar_settings.FOLDER
 
     # If there's no annotations, just return the original FOLDER immediately
     if 'annotations' not in metadata:
@@ -34,10 +39,8 @@ def get_folder(metadata):
 
     annotations = metadata['annotations']
 
-    folder_annotation = os.getenv('FOLDER_ANNOTATION', 'k8s-sidecar-target-directory')
-
-    if folder_annotation in annotations:
-        folder = annotations[folder_annotation]
+    if sidecar_settings.FOLDER_ANNOTATION in annotations:
+        folder = annotations[sidecar_settings.FOLDER_ANNOTATION]
 
     return folder
 
@@ -46,7 +49,7 @@ def get_filepath(filename, folder, kind, body):
     Returns unique path if UNIQUE_FILENAMES are desired.
     Otherwise, simply returns the concatenated filename with the folder.
     """
-    if get_env_var_bool('UNIQUE_FILENAMES'):
+    if sidecar_settings.UNIQUE_FILENAMES:
         namespace = 'default'
         if 'namespace' in body['metadata']:
             namespace = body['metadata']['namespace']
@@ -64,11 +67,11 @@ def delete_file(body, kind, logger):
 
     for filename in body['data'].keys():
         filepath = get_filepath(filename, folder, kind, body)
-        logger.info(f"[DELETE:{kind}] Deleting file {filepath}.")
+        logger.info("[DELETE:%s] Deleting file %s.", kind, filepath)
         try:
             os.remove(filepath)
         except FileNotFoundError:
-            logger.error(f"[DELETE:{kind}] {filepath} not found.")
+            logger.error("[DELETE:%s] %s not found.", kind, filepath)
         except OSError as e:
             logger.error(e)
 
@@ -96,17 +99,16 @@ def write_file(event, body, kind, logger):
                     sha256_hash_cur.update(byte_block)
 
             if sha256_hash_new.hexdigest() == sha256_hash_cur.hexdigest():
-                logger.info(f"[{event}:{kind}] Contents of {filepath} haven't changed. Not overwriting existing file.")
+                logger.info(f"[%s:%s] Contents of %s haven't changed. Not overwriting existing file.", event, kind, filepath)
                 continue
 
         try:
             with open(filepath, 'w') as f:
-                logger.info(f"[{event}:{kind}] Writing content to file {filepath}")
+                logger.info("[%s:%s] Writing content to file %s", event, kind, filepath)
                 f.write(content)
         # TODO: Flesh out IO exception handling here
         except Exception as e:
-            logger.error(e)
+            logger.exception("Failed to write file %s", filepath)
 
-        if os.getenv('DEFAULT_FILE_MODE'):
-            mode = int(os.getenv('DEFAULT_FILE_MODE'), base=8)
-            os.chmod(filepath, mode)
+        if sidecar_settings.DEFAULT_FILE_MODE:
+            os.chmod(filepath, sidecar_settings.DEFAULT_FILE_MODE)
