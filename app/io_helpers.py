@@ -67,11 +67,11 @@ def delete_file(body, kind, logger):
 
     for filename in body['data'].keys():
         filepath = get_filepath(filename, folder, kind, body)
-        logger.info("[DELETE:%s] Deleting file %s.", kind, filepath)
+        logger.info("[DELETED:%s] Deleting file %s.", kind, filepath)
         try:
             os.remove(filepath)
         except FileNotFoundError:
-            logger.error("[DELETE:%s] %s not found.", kind, filepath)
+            logger.error("[DELETED:%s] %s not found.", kind, filepath)
         except OSError as e:
             logger.error(e)
 
@@ -79,7 +79,10 @@ def write_file(event, body, kind, logger):
     """
     Write contents to the desired filepath if they have changed.
     """
-    event = event.upper()
+    if event is None:
+        event = 'RESUMED'
+    else:
+        event = event.upper()
 
     folder = get_folder(body['metadata'])
     create_folder(folder, logger)

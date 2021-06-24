@@ -24,6 +24,10 @@ def resource_is_desired(body, **_):
 
     return sidecar_settings.RESOURCE in (kind, 'both')
 
+def resource_is_cru(event, **_):
+    """Returns true if the resource was created, resumed or updated in the on.event handler"""
+    return not resource_is_deleted(event)
+
 def resource_is_deleted(event, **_):
     """Returns true if the resource was deleted in the on.event handler"""
     return event['type'] == 'DELETED'
