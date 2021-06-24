@@ -4,7 +4,7 @@ import threading
 import contextlib
 import sidecar_settings
 from io_helpers import write_file, delete_file
-from conditions import label_is_satisfied, resource_is_desired, resource_is_deleted
+from conditions import *
 from list_mode import one_run
 import kopf
 
@@ -23,14 +23,11 @@ def startup_tasks(settings: kopf.OperatorSettings, logger, **_):
     # Disable k8s event logging
     settings.posting.enabled = False
 
-@kopf.on.resume('', 'v1', 'configmaps', when=kopf.all_([label_is_satisfied, resource_is_desired]))
-@kopf.on.create('', 'v1', 'configmaps', when=kopf.all_([label_is_satisfied, resource_is_desired]))
-@kopf.on.update('', 'v1', 'configmaps', when=kopf.all_([label_is_satisfied, resource_is_desired]))
-@kopf.on.resume('', 'v1', 'secrets', when=kopf.all_([label_is_satisfied, resource_is_desired]))
-@kopf.on.create('', 'v1', 'secrets', when=kopf.all_([label_is_satisfied, resource_is_desired]))
-@kopf.on.update('', 'v1', 'secrets', when=kopf.all_([label_is_satisfied, resource_is_desired]))
-def cru_fn(body, reason, logger, **_):
-    write_file(reason, body, body['kind'], logger)
+# Event types when not 'DELETED' can be 'ADDED', 'MODIFIED' and None. The latter being when the resource already existed when the operator started
+@kopf.on.event('', 'v1', 'configmaps', when=kopf.all_([label_is_satisfied, resource_is_desired, resource_is_created]))
+@kopf.on.event('', 'v1', 'secrets', when=kopf.all_([label_is_satisfied, resource_is_desired, resource_is_created]))
+def cru_fn(body, event, logger, **_):
+    write_file(event['type'], body, body['kind'], logger)
 
 @kopf.on.event('', 'v1', 'configmaps', when=kopf.all_([label_is_satisfied, resource_is_desired, resource_is_deleted]))
 @kopf.on.event('', 'v1', 'secrets', when=kopf.all_([label_is_satisfied, resource_is_desired, resource_is_deleted]))
@@ -44,13 +41,6 @@ def kopf_thread(
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
     with contextlib.closing(loop):
-
-        # Since we're using an embedded operator we can't rely on CLI options to configure the logger
-        # we have to do it here, before we start the operator
-        #  kopf.configure(
-        #      debug=sidecar_settings.DEBUG,
-        #      verbose=sidecar_settings.VERBOSE
-        #  )
 
         # The Grafana Helm chart doesn't even use liveness probes for the sidecar... worth enabling?
         # liveness_endpoint = "http://0.0.0.0:8080/healthz"
@@ -77,7 +67,7 @@ def main():
         stop_flag = threading.Event()
         thread = threading.Thread(target=kopf_thread, kwargs=dict(
             stop_flag=stop_flag,
-            ready_flag=ready_flag,
+            ready_flag=ready_flag
         ))
         thread.start()
         ready_flag.wait()

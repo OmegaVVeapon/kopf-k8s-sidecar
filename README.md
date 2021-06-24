@@ -41,20 +41,6 @@ If you are looking to use this image with the [Grafana Helm chart](https://githu
 * Set `.Values.sidecar.image.repository` to `omegavveapon/kopf-k8s-sidecar` 
 * Set `.Values.sidecar.image.tag` to the latest tag in [Releases](https://github.com/OmegaVVeapon/kopf-k8s-sidecar/releases)
 
-### RBAC permissions
-
-Provide `patch` permissions for `configmaps` and `secrets` in the `values.yaml`
-
-```
-rbac:
--  extraClusterRoleRules: []
-+  extraClusterRoleRules:
-+    - apiGroups: [""]  # "" indicates the core API group
-+      resources: ["configmaps", "secrets"]
-+      verbs: ["patch"]
-```
-The operator needs to `patch` resources to add a `kopf.zalando.org/last-handled-configuration` annotation which is used to handle [change detection](https://kopf.readthedocs.io/en/stable/configuration/?highlight=last-handled-configuration#change-detection).
-
 ## Configuration Environment Variables
 
 | Variable | Required? | Default | Description |
