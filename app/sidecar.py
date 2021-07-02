@@ -24,8 +24,8 @@ def startup_tasks(settings: kopf.OperatorSettings, logger, **_):
     settings.posting.enabled = False
 
 # Event types when not 'DELETED' can be 'ADDED', 'MODIFIED' and None. The latter being when the resource already existed when the operator started
-@kopf.on.event('', 'v1', 'configmaps', when=kopf.all_([label_is_satisfied, resource_is_desired, resource_is_created]))
-@kopf.on.event('', 'v1', 'secrets', when=kopf.all_([label_is_satisfied, resource_is_desired, resource_is_created]))
+@kopf.on.event('', 'v1', 'configmaps', when=kopf.all_([label_is_satisfied, resource_is_desired, resource_is_cru]))
+@kopf.on.event('', 'v1', 'secrets', when=kopf.all_([label_is_satisfied, resource_is_desired, resource_is_cru]))
 def cru_fn(body, event, logger, **_):
     write_file(event['type'], body, body['kind'], logger)
 
