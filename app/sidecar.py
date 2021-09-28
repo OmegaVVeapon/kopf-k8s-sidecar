@@ -42,11 +42,8 @@ def kopf_thread(
     asyncio.set_event_loop(loop)
     with contextlib.closing(loop):
 
-        # The Grafana Helm chart doesn't even use liveness probes for the sidecar... worth enabling?
-        # liveness_endpoint = "http://0.0.0.0:8080/healthz"
-
         opts = {
-            "liveness_endpoint": None,
+            "liveness_endpoint": "http://0.0.0.0:8080/healthz",
             "clusterwide": False,
             "namespaces": [],
             "ready_flag": ready_flag,
