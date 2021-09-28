@@ -41,6 +41,17 @@ If you are looking to use this image with the [Grafana Helm chart](https://githu
 * Set `.Values.sidecar.image.repository` to `omegavveapon/kopf-k8s-sidecar` 
 * Set `.Values.sidecar.image.tag` to the latest tag in [Releases](https://github.com/OmegaVVeapon/kopf-k8s-sidecar/releases)
 
+### Healthcheck
+
+The sidecar offers a simple healthcheck endpoint for use in a liveness probe (don't use it for readiness is it makes no sense for an operator).
+
+```
+livenessProbe:
+  httpGet:
+    path: /healthz
+    port: 8080
+```
+
 ## Configuration Environment Variables
 
 | Variable | Required? | Default | Description |

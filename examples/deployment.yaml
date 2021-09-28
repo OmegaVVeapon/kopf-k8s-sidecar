@@ -20,10 +20,6 @@ spec:
         - name: datasource-sidecar
           imagePullPolicy: Always
           image: omegavveapon/kopf-k8s-sidecar
-          # livenessProbe:
-          #   httpGet:
-          #     path: /healthz
-          #     port: 8080
           volumeMounts:
             - name: shared-volume
               mountPath: /tmp/
@@ -38,16 +34,14 @@ spec:
               value: "annotation-path"
             - name: LABEL
               value: "fake-datasource"
-            - name: LABEL_VALUE
-              value: "yea"
+            # - name: LABEL_VALUE
+            #   value: "yea"
             - name: FOLDER
               value: /tmp/
             - name: RESOURCE
               value: both
             - name: DEBUG
               value: "false"
-            # - name: LIVENESS
-            #   value: "false"
       containers:
         - name: bash
           image: bash:4.4.19
@@ -59,24 +53,24 @@ spec:
         - name: dashboard-sidecar
           imagePullPolicy: Always
           image: omegavveapon/kopf-k8s-sidecar
-          # livenessProbe:
-          #   httpGet:
-          #     path: /healthz
-          #     port: 8080
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8080
           volumeMounts:
             - name: shared-volume
               mountPath: /tmp/
           env:
             - name: UNIQUE_FILENAMES
               value: "true"
-            # - name: NAMESPACE
-            #   value: test-namespace,default
+            - name: NAMESPACE
+              value: test-namespace
             # - name: METHOD
             #   value: "LIST"
             - name: LABEL
               value: "fake-dashboard"
-            - name: LABEL_VALUE
-              value: "yea"
+            # - name: LABEL_VALUE
+            #   value: "yea"
             - name: FOLDER
               value: /tmp/
             # - name: FOLDER_ANNOTATION
@@ -85,8 +79,6 @@ spec:
               value: both
             - name: DEBUG
               value: "false"
-            # - name: LIVENESS
-            #   value: "false"
       volumes:
         - name: shared-volume
           emptyDir: {}
