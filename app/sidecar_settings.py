@@ -74,3 +74,4 @@ if get_env_var_bool('UNIQUE_FILENAMES'):
     logger.info("Unique filenames will be enforced.")
 
 HEALTHCHECK_PORT = os.getenv('HEALTHCHECK_PORT', '8181')
+logger.info("Healthcheck /healthz endpoint listening on port %s", HEALTHCHECK_PORT)
