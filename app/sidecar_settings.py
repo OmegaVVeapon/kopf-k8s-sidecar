@@ -55,7 +55,6 @@ if DEFAULT_FILE_MODE:
     DEFAULT_FILE_MODE = int(DEFAULT_FILE_MODE, base=8)
 logger.info("DEFAULT_FILE_MODE is %s", DEFAULT_FILE_MODE)
 
-
 # Set the client and service k8s API timeouts
 # Very important! Without proper values, the operator may stop responding!
 # See https://github.com/nolar/kopf/issues/585
@@ -73,3 +72,5 @@ if WATCH_CLIENT_TIMEOUT < WATCH_SERVER_TIMEOUT:
 UNIQUE_FILENAMES = get_env_var_bool('UNIQUE_FILENAMES')
 if get_env_var_bool('UNIQUE_FILENAMES'):
     logger.info("Unique filenames will be enforced.")
+
+HEALTHCHECK_PORT = os.getenv('HEALTHCHECK_PORT', '8181')

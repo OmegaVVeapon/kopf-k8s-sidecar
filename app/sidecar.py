@@ -43,7 +43,7 @@ def kopf_thread(
     with contextlib.closing(loop):
 
         opts = {
-            "liveness_endpoint": "http://0.0.0.0:8080/healthz",
+            "liveness_endpoint": f"http://0.0.0.0:{sidecar_settings.HEALTHCHECK_PORT}/healthz",
             "clusterwide": False,
             "namespaces": [],
             "ready_flag": ready_flag,
