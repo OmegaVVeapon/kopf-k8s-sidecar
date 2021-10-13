@@ -45,11 +45,13 @@ If you are looking to use this image with the [Grafana Helm chart](https://githu
 
 The sidecar offers a simple healthcheck endpoint for use in a liveness probe (don't use it for readiness is it makes no sense for an operator).
 
+Should this port conflict with other containers in your pod, you can change it via the `HEALTHCHECK_PORT` env var.
+
 ```
 livenessProbe:
   httpGet:
     path: /healthz
-    port: 8080
+    port: 8181
 ```
 
 ## Configuration Environment Variables
@@ -68,6 +70,7 @@ livenessProbe:
 | WATCH_CLIENT_TIMEOUT | No | `660` | (seconds) is how long the session with a watching request will exist before closing it from the client side. This includes the connection establishing and event streaming. |
 | WATCH_SERVER_TIMEOUT | No | `600` | (seconds) is how long the session with a watching request will exist before closing it from the server side. This value is passed to the server side in a query string, and the server decides on how to follow it. The watch-stream is then gracefully closed. |
 | UNIQUE_FILENAMES | No (but recommended!) | `False` | A value of `true` will produce unique filenames to avoid issues when duplicate data keys exist between `ConfigMap`s and/or `Secret`s within the same or multiple `Namespace`s. |
+| HEALTHCHECK_PORT | No | `8181` | Port on which the `/healthz` endpoint will be listening on |
 
 ## Gotchas
 
