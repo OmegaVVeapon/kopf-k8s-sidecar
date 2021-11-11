@@ -40,7 +40,11 @@ def get_folder(metadata):
     annotations = metadata['annotations']
 
     if sidecar_settings.FOLDER_ANNOTATION in annotations:
-        folder = annotations[sidecar_settings.FOLDER_ANNOTATION]
+        folder_annotation = annotations[sidecar_settings.FOLDER_ANNOTATION]
+        if os.path.isabs(folder_annotation):
+            folder = folder_annotation
+        else:
+            folder = os.path.join(folder, folder_annotation)
 
     return folder
 
