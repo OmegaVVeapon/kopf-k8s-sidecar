@@ -37,6 +37,31 @@ data:
 apiVersion: v1
 kind: ConfigMap
 metadata:
+  name: fake-dashboard-folder-annotation-relative
+  annotations:
+    annotation-path: "something"
+  labels:
+    fake-dashboard: "yea"
+data:
+  default-annotation-relative: |-
+     This dashboard should be in /tmp/something
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: fake-dashboard-multine
+  labels:
+    fake-dashboard: "yea"
+data:
+  default-dashboard-multiline: |-
+     This is line 1
+     This is line 2
+     This is line 3
+     This is line 4
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
   name: fake-datasource-1
   labels:
     fake-datasource: "yea"
