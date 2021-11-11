@@ -58,7 +58,7 @@ livenessProbe:
 | --- |:---:|:---:| --- |
 | LABEL | <b>Yes</b> | `None` | Label that should be used for filtering |
 | FOLDER | <b>Yes</b> | `None` | Folder where the files should be placed. |
-| FOLDER_ANNOTATION | No | `k8s-sidecar-target-directory` | The annotation the sidecar will look for in `ConfigMap`s and/or `Secret`s to override the destination folder for files |
+| FOLDER_ANNOTATION | No | `k8s-sidecar-target-directory` | The annotation the sidecar will look for in `ConfigMap`s and/or `Secret`s to override the destination folder for files. If the value is a relative path, it will relative to `FOLDER` |
 | LABEL_VALUE | No | `None` | The value for the label you want to filter your resources on.<br>Don't set a value to filter by any value |
 | NAMESPACE | No | `ALL` | The `Namespace`(s) from which resources will be watched. <br>For multiple namespaces, use a comma-separated string like "default,test".<br>If not set or set to `ALL`, it will watch all `Namespace`s. |
 | RESOURCE | No | `configmap` | The resource type that the operator will filter for. Can be `configmap`, `secret` or `both` |
