@@ -15,5 +15,6 @@ jobs:
           minikube version: 'v1.24.0'
           kubernetes version: 'v1.23.0'
           github token: ${{ secrets.GITHUB_TOKEN }}
+          start args: --wait apiserver,system_pods,node_ready
       - name: Interact with the cluster
         run: kubectl get nodes
