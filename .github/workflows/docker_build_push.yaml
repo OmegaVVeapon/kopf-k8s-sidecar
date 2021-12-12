@@ -60,6 +60,7 @@ jobs:
       -
         name: Test
         run: |
+          echo "something"
           docker run --rm ${{ steps.prep.outputs.version }}
       -
         name: Build and push
