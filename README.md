@@ -6,6 +6,19 @@ An implementation of [k8s-sidecar](https://github.com/kiwigrid/k8s-sidecar) usin
 
 ## Why?
 
+**UPDATE:**
+
+The issue with the [kiwigrid k8s-sidecar](https://github.com/kiwigrid/k8s-sidecar) hanging is no longer present as of version [1.15.0](https://github.com/kiwigrid/k8s-sidecar/releases/tag/1.15.0). 
+
+The `WATCH_CLIENT_TIMEOUT` and `WATCH_SERVER_TIMEOUT` settings that were introduced in this fork to fix the issue, have now been ported there.
+
+Thus, I advise users of this repo to switch back to the kiwigrid k8s-sidecar at this point.
+
+Thank you.
+
+----
+_Initial description_
+
 At the moment of writing this documentation, there is an [issue](https://github.com/kiwigrid/k8s-sidecar/issues/85) with `k8s-sidecar` where it will "hang" after a short amount of time while watching for resources.
 
 Upon inspecting the codebase for the issue, I soon concluded that much of the logic could be drastically simplified by using an operator framework.
