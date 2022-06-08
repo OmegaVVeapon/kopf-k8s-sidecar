@@ -1,4 +1,4 @@
-FROM python:3.8 as base
+FROM python:3.10.5 as base
 
 # Setup env
 ENV LANG C.UTF-8
@@ -17,7 +17,7 @@ COPY Pipfile .
 COPY Pipfile.lock .
 RUN PIPENV_VENV_IN_PROJECT=1 pipenv install --ignore-pipfile --deploy
 
-FROM python:3.8-alpine3.15 AS runtime
+FROM python:3.10.5 AS runtime
 
 # Copy virtual env from python-deps stage
 COPY --from=python-deps /.venv /.venv
