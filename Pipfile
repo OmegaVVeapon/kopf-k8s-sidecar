@@ -4,7 +4,7 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-kopf = "==1.34.0"
+kopf = "==1.36.0"
 pykube-ng = "*"
 tenacity = "*"
 
